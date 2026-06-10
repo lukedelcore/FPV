@@ -156,6 +156,23 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .hidden{display:none!important}
 
+  /* ---- SYNC OVERLAY ---- */
+  .live{cursor:pointer}
+  .ov{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}
+  .ovcard{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line-bright);box-shadow:0 0 0 1px var(--line),0 18px 60px rgba(0,0,0,.6)}
+  .ovcard .ovh{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .ovcard .ovh::before{content:'';width:9px;height:9px;background:var(--hud);box-shadow:0 0 8px var(--hud)}
+  .ovbody{padding:16px 18px}
+  .ovsub{font-size:12px;line-height:1.55;color:var(--dim);margin-bottom:14px}
+  .ovcard label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim2);margin-bottom:5px}
+  .ovcard input{width:100%;background:var(--bg);border:1px solid var(--line-bright);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:9px 10px;outline:none}
+  .ovcard input:focus{border-color:var(--hud)}
+  .ovmsg{font-size:11.5px;line-height:1.5;margin:10px 0;min-height:14px}
+  .ovbtns{display:flex;gap:8px;margin-top:6px}
+  .ovnote{font-size:11px;line-height:1.55;color:var(--dim2);margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .ovnote a{color:var(--hud);text-decoration:none}
+  .ovnote a:hover{text-decoration:underline}
+
   @media (max-width:480px){
     .ro .val{font-size:17px}
     .readouts.c4,.readouts.c5{grid-template-columns:repeat(2,1fr)}
@@ -199,6 +216,29 @@
 
 <div class="dock"><div class="dock-inner" id="dock"></div></div>
 <div class="toast" id="toast"></div>
+
+<div class="ov" id="syncOverlay" hidden>
+  <div class="ovcard">
+    <div class="ovh">Device Sync</div>
+    <div class="ovbody">
+      <div class="ovsub">Link this tracker across your phone and laptop with a free Pantry key. The key is stored only on this device — it never goes into your public repo or the synced data.</div>
+      <label for="pantryInput">Pantry ID</label>
+      <input id="pantryInput" placeholder="paste your Pantry ID (a long UUID)" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <div class="ovmsg" id="syncMsg"></div>
+      <div class="ovbtns">
+        <button class="btn btn-save" id="syncConnect">Connect</button>
+        <button class="btn btn-cancel" id="syncClose">Close</button>
+      </div>
+      <div id="syncConnected" hidden>
+        <div class="ovbtns" style="margin-top:12px">
+          <button class="util" id="syncCopy" style="flex:1;padding:9px">Copy ID</button>
+          <button class="util" id="syncDisconnect" style="flex:1;padding:9px">Disconnect</button>
+        </div>
+      </div>
+      <div class="ovnote">No key yet? Get one free at <a href="https://getpantry.cloud" target="_blank" rel="noopener">getpantry.cloud</a> — sign up with just an email, copy the Pantry ID it shows you, and paste it here on each device. Newest change wins. Your <b>Save</b> backup always works even with sync off.</div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ============ SOURCING DATA ============ */
@@ -337,10 +377,123 @@ const Store=(()=>{
   const mem={};STORE_MODE='memory';
   return {get:async k=>k in mem?{key:k,value:mem[k]}:null,set:async(k,v)=>{mem[k]=v;return{key:k,value:v};}};
 })();
+/* ============ CLOUD SYNC (Pantry — optional, links phone ↔ laptop) ============ */
+/* The Pantry ID lives ONLY in this device's browser, never in the repo / the synced data. */
+const PANTRY_BASE='https://getpantry.cloud/apiv1/pantry/';
+const BASKET='fpvBuildStation';
+const PID_KEY='fpv-sync:pantry-id', LTS_KEY='fpv-sync:local-ts';
+let syncState='off';      // off | syncing | ok | error
+let syncReady=false;      // true once the initial sync pass is done
+let syncTimer=null;
+
+function pantryId(){try{return localStorage.getItem(PID_KEY)||'';}catch(e){return '';}}
+function setPantryId(v){try{v?localStorage.setItem(PID_KEY,v):localStorage.removeItem(PID_KEY);}catch(e){}}
+function localTs(){try{return Number(localStorage.getItem(LTS_KEY))||0;}catch(e){return 0;}}
+function setLocalTs(n){try{localStorage.setItem(LTS_KEY,String(n));}catch(e){}}
+function setSyncState(s){syncState=s;updateSaveBadge();}
+
+async function pantryValid(id){
+  try{const r=await fetch(PANTRY_BASE+encodeURIComponent(id));return r.ok;}catch(e){return null;} // null = couldn't reach
+}
+async function cloudPull(){
+  const id=pantryId();if(!id)return null;
+  const r=await fetch(PANTRY_BASE+encodeURIComponent(id)+'/basket/'+BASKET,{method:'GET'});
+  if(r.status===400||r.status===404)return null;        // no basket stored yet
+  if(!r.ok)throw new Error('pull '+r.status);
+  return await r.json();
+}
+async function cloudPush(){
+  const id=pantryId();if(!id)return;
+  const body=JSON.stringify({_app:'fpv-build-station',_ts:localTs()||Date.now(),components:data,build:done});
+  const r=await fetch(PANTRY_BASE+encodeURIComponent(id)+'/basket/'+BASKET,
+    {method:'POST',headers:{'Content-Type':'application/json'},body});
+  if(!r.ok)throw new Error('push '+r.status);
+}
+// Called after any local save. Debounced so we don't hammer Pantry.
+function scheduleSync(){
+  if(!syncReady||!pantryId())return;
+  setLocalTs(Date.now());
+  setSyncState('syncing');
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(async()=>{
+    try{await cloudPush();setSyncState('ok');}catch(e){setSyncState('error');}
+  },1500);
+}
+// Decide direction once: newest wins. Used on load and on connect.
+async function runSync(){
+  if(!pantryId()){setSyncState('off');syncReady=true;return;}
+  setSyncState('syncing');
+  try{
+    const remote=await cloudPull();
+    if(remote&&Number(remote._ts||0)>localTs()){
+      if(Array.isArray(remote.components))data=remote.components;
+      if(remote.build&&typeof remote.build==='object')done=remote.build;
+      try{await Store.set(COMP_KEY,JSON.stringify(data));await Store.set(BUILD_KEY,JSON.stringify(done));}catch(e){}
+      setLocalTs(Number(remote._ts));
+      renderAll();
+    }else{
+      if(!localTs())setLocalTs(Date.now());
+      await cloudPush();          // seed the cloud / push our newer state
+    }
+    setSyncState('ok');
+  }catch(e){setSyncState('error');}
+  syncReady=true;
+}
+
+/* ---- Sync panel ---- */
+function openSync(){
+  const ov=document.getElementById('syncOverlay');if(!ov)return;
+  const id=pantryId();
+  document.getElementById('pantryInput').value=id;
+  document.getElementById('syncMsg').textContent='';
+  document.getElementById('syncMsg').style.color='var(--dim)';
+  document.getElementById('syncConnected').hidden=!id;
+  ov.hidden=false;
+}
+function closeSync(){const ov=document.getElementById('syncOverlay');if(ov)ov.hidden=true;}
+function wireSyncPanel(){
+  document.getElementById('syncClose').onclick=closeSync;
+  document.getElementById('syncOverlay').addEventListener('click',e=>{if(e.target.id==='syncOverlay')closeSync();});
+  document.getElementById('syncConnect').onclick=async()=>{
+    const msg=document.getElementById('syncMsg');
+    const id=document.getElementById('pantryInput').value.trim();
+    if(!id){msg.style.color='var(--st-source)';msg.textContent='Paste your Pantry ID first.';return;}
+    msg.style.color='var(--dim)';msg.textContent='Checking the ID…';
+    const ok=await pantryValid(id);
+    if(ok===false){msg.style.color='var(--st-source)';msg.textContent='That ID was rejected by Pantry — double-check it.';return;}
+    if(ok===null){msg.style.color='var(--st-source)';msg.textContent='Couldn\u2019t reach Pantry. Check your connection — your data is still saved on this device.';return;}
+    setPantryId(id);
+    msg.style.color='var(--st-received)';msg.textContent='Connected — syncing…';
+    await runSync();
+    document.getElementById('syncConnected').hidden=false;
+    msg.textContent=syncState==='ok'?'Connected. This device now syncs automatically.':'Connected, but the first sync hit an error. It\u2019ll retry on your next change.';
+    toast('Sync connected');
+  };
+  document.getElementById('syncDisconnect').onclick=()=>{
+    setPantryId('');setSyncState('off');
+    document.getElementById('syncConnected').hidden=true;
+    document.getElementById('pantryInput').value='';
+    document.getElementById('syncMsg').textContent='Sync turned off. This device saves locally only.';
+    document.getElementById('syncMsg').style.color='var(--dim)';
+    toast('Sync disconnected');
+  };
+  document.getElementById('syncCopy').onclick=async()=>{
+    try{await navigator.clipboard.writeText(pantryId());toast('Pantry ID copied');}
+    catch(e){toast('Copy failed — select it manually');}
+  };
+}
+
 function updateSaveBadge(){
   const el=document.getElementById('saveBadge');if(!el)return;
-  const map={claude:['Synced to Claude','var(--hud)'],local:['Saved on this device','var(--hud)'],memory:['⚠ Not saving — Backup!','var(--st-source)']};
-  const [txt,col]=map[STORE_MODE];
+  let txt,col;
+  if(pantryId()){
+    const m={syncing:['Syncing…','var(--st-found)'],ok:['Synced · phone ↔ laptop','var(--hud)'],
+             error:['Sync error — saved locally','var(--st-source)'],off:['Saved on this device','var(--hud)']};
+    [txt,col]=m[syncState]||m.ok;
+  }else{
+    const map={claude:['Synced to Claude','var(--hud)'],local:['Saved on this device','var(--hud)'],memory:['⚠ Not saving — Backup!','var(--st-source)']};
+    [txt,col]=map[STORE_MODE];
+  }
   el.style.color=col;el.querySelector('.dot').style.background=col;el.querySelector('.dot').style.boxShadow='0 0 8px '+col;
   el.childNodes[1].nodeValue=txt;
 }
@@ -356,6 +509,7 @@ async function load(){
   await migrate();
   try{const r=await Store.get(BUILD_KEY);done=r&&r.value?JSON.parse(r.value):{};}catch(e){done={};}
   renderAll();updateSaveBadge();
+  await runSync();
 }
 async function migrate(){
   let applied=[];
@@ -393,8 +547,8 @@ async function migrate(){
     try{await Store.set(MIG_KEY,JSON.stringify(applied));}catch(e){}
   }
 }
-async function saveComp(){try{await Store.set(COMP_KEY,JSON.stringify(data));}catch(e){toast('Save failed');}}
-async function saveBuild(){try{await Store.set(BUILD_KEY,JSON.stringify(done));}catch(e){toast('Save failed');}}
+async function saveComp(){try{await Store.set(COMP_KEY,JSON.stringify(data));scheduleSync();}catch(e){toast('Save failed');}}
+async function saveBuild(){try{await Store.set(BUILD_KEY,JSON.stringify(done));scheduleSync();}catch(e){toast('Save failed');}}
 
 /* ============ HELPERS ============ */
 const fmt=n=>n==null||n===''?'—':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
@@ -533,7 +687,7 @@ async function importData(file){
 }
 function renderDock(){
   const dock=document.getElementById('dock');
-  const saveLoad=`<button class="util" id="exportBtn" title="Save a backup file to your device">Save</button><button class="util" id="importBtn" title="Load a backup file">Load</button>`;
+  const saveLoad=`<button class="util" id="syncBtn" title="Sync across your devices">Sync</button><button class="util" id="exportBtn" title="Save a backup file to your device">Save</button><button class="util" id="importBtn" title="Load a backup file">Load</button>`;
   if(activeTab==='sourcing'){
     dock.innerHTML=`<button class="add-btn" id="addBtn">+ Add Component</button>`+saveLoad;
     document.getElementById('addBtn').onclick=()=>{editing='new';filter='all';renderAll();window.scrollTo({top:0,behavior:'smooth'});};
@@ -543,6 +697,7 @@ function renderDock(){
   }
   document.getElementById('exportBtn').onclick=exportData;
   document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+  document.getElementById('syncBtn').onclick=openSync;
 }
 
 /* ============ ORCHESTRATION ============ */
@@ -594,6 +749,8 @@ importInput.type='file';importInput.id='importFile';importInput.accept='applicat
 importInput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value='';});
 document.body.appendChild(importInput);
 
+wireSyncPanel();
+document.getElementById('saveBadge').onclick=openSync;
 load();
 </script>
 </body>
