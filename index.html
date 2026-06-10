@@ -159,6 +159,7 @@
   /* ---- SYNC OVERLAY ---- */
   .live{cursor:pointer}
   .ov{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}
+  .ov[hidden]{display:none}
   .ovcard{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line-bright);box-shadow:0 0 0 1px var(--line),0 18px 60px rgba(0,0,0,.6)}
   .ovcard .ovh{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
   .ovcard .ovh::before{content:'';width:9px;height:9px;background:var(--hud);box-shadow:0 0 8px var(--hud)}
