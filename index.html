@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>FPV Build — Ground Station</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080B0C; --panel:#0F1517; --raised:#151D1F;
+    --line:#1E2A2C; --line-bright:#2C3D40;
+    --text:#DCE6E4; --dim:#6B7C79; --dim2:#485855;
+    --hud:#3DF5A0;
+    --st-source:#FF5C6C; --st-found:#FFB23E; --st-ordered:#2DD4F0; --st-received:#3DF5A0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.45;
+    padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 88px);
+    background-image:
+      radial-gradient(120% 80% at 50% -10%, rgba(61,245,160,0.05), transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 3px, transparent 4px);
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:14px}
+
+  /* ---- HUD HEADER ---- */
+  .hud{position:relative;border:1px solid var(--line-bright);
+    background:linear-gradient(180deg, rgba(61,245,160,0.04), rgba(0,0,0,0) 70%), var(--panel);
+    padding:16px 18px;margin-bottom:12px}
+  .hud::before,.hud::after{content:'';position:absolute;width:14px;height:14px;border:2px solid var(--hud)}
+  .hud::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+  .hud::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+  .hud-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .brand h1{font-family:'Chakra Petch',sans-serif;font-size:19px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+  .brand .sub{font-size:10.5px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-top:3px}
+  .live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:2px;color:var(--hud);text-transform:uppercase;white-space:nowrap}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--hud);box-shadow:0 0 8px var(--hud);animation:blink 1.6s steps(1) infinite}
+  @keyframes blink{50%{opacity:.25;box-shadow:none}}
+
+  /* ---- TABS ---- */
+  .tabs{display:flex;gap:0;margin:14px 0 0;border:1px solid var(--line-bright)}
+  .tab{flex:1;background:#0a1011;border:none;border-right:1px solid var(--line-bright);color:var(--dim);
+    font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+    padding:11px 6px;cursor:pointer;transition:.15s;position:relative}
+  .tab:last-child{border-right:none}
+  .tab:hover{color:var(--text)}
+  .tab.on{background:var(--hud);color:var(--bg);font-weight:700}
+  .tab .mini-ct{display:block;font-size:9.5px;letter-spacing:1px;opacity:.8;margin-top:1px;font-family:'JetBrains Mono'}
+
+  .readouts{display:grid;gap:1px;margin-top:14px;background:var(--line);border:1px solid var(--line)}
+  .readouts.c4{grid-template-columns:repeat(4,1fr)}
+  .readouts.c5{grid-template-columns:repeat(5,1fr)}
+  .ro{background:var(--panel);padding:9px 6px;text-align:center}
+  .ro .lab{font-size:8.5px;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+  .ro .val{font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:700;line-height:1.1;margin-top:2px}
+
+  .link-bar{margin-top:14px}
+  .link-bar .lbl{display:flex;justify-content:space-between;font-size:10px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;margin-bottom:5px}
+  .track{height:8px;background:#0a1011;border:1px solid var(--line);display:flex;overflow:hidden}
+  .seg{height:100%;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .spend{margin-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:11px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;border-top:1px dashed var(--line);padding-top:10px}
+  .spend b{color:var(--text);font-weight:600}
+
+  /* ---- SOURCING TOOLBAR ---- */
+  .toolbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+  .search{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:13px;padding:11px 12px;letter-spacing:.5px}
+  .search:focus{outline:none;border-color:var(--hud)}
+  .search::placeholder{color:var(--dim2)}
+  .filters{display:flex;gap:6px;flex-wrap:wrap}
+  .fpill{flex:1;min-width:60px;background:var(--panel);border:1px solid var(--line);color:var(--dim);font-family:'Chakra Petch',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:8px 3px;cursor:pointer;transition:.15s;text-align:center}
+  .fpill:hover{border-color:var(--line-bright);color:var(--text)}
+  .fpill.on{color:var(--bg);font-weight:700}
+  .fpill .ct{display:block;font-size:14px;margin-top:1px}
+
+  .group-head{font-family:'Chakra Petch',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+  .group-head::after{content:'';flex:1;height:1px;background:var(--line)}
+  .card{border:1px solid var(--line);border-left-width:3px;background:var(--panel);margin-bottom:8px;transition:.15s}
+  .card:hover{border-color:var(--line-bright)}
+  .card-main{padding:11px 12px;display:flex;flex-direction:column;gap:7px}
+  .card-row1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .cname{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-spacing:.3px;word-break:break-word}
+  .cprice{font-size:13px;font-weight:600;white-space:nowrap}
+  .cmeta{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--dim);letter-spacing:.5px}
+  .cmeta a{color:var(--st-ordered);text-decoration:none;border-bottom:1px dotted}
+  .cnote{font-size:11.5px;color:var(--dim);line-height:1.4;border-left:2px solid var(--line-bright);padding-left:8px}
+  .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:2px}
+  .stage{font-family:'Chakra Petch',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:7px 2px;text-align:center;border:1px solid var(--line);color:var(--dim2);background:#0a0f10;cursor:pointer;transition:.12s;user-select:none}
+  .stage:hover{color:var(--text);border-color:var(--line-bright)}
+  .stage.act{color:var(--bg);font-weight:700;border-color:transparent}
+  .card-actions{display:flex;gap:6px;margin-top:2px}
+  .mini{flex:1;background:transparent;border:1px solid var(--line);color:var(--dim);font-family:inherit;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;padding:6px;cursor:pointer;transition:.12s}
+  .mini:hover{color:var(--text);border-color:var(--line-bright)}
+  .mini.del:hover{color:var(--st-source);border-color:var(--st-source)}
+
+  .edit{border-top:1px dashed var(--line);padding:12px;display:flex;flex-direction:column;gap:9px;background:var(--raised)}
+  .edit label{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:3px;display:block}
+  .edit input,.edit textarea,.edit select{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:13px;padding:9px 10px}
+  .edit input:focus,.edit textarea:focus,.edit select:focus{outline:none;border-color:var(--hud)}
+  .edit textarea{resize:vertical;min-height:48px;line-height:1.4}
+  .e2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .ebtns{display:flex;gap:8px;margin-top:2px}
+  .btn{flex:1;font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:10px;cursor:pointer;border:1px solid transparent;transition:.12s}
+  .btn-save{background:var(--hud);color:var(--bg)}
+  .btn-save:hover{filter:brightness(1.1)}
+  .btn-cancel{background:transparent;border-color:var(--line-bright);color:var(--dim)}
+  .btn-cancel:hover{color:var(--text)}
+  .empty{text-align:center;color:var(--dim);padding:40px 20px;border:1px dashed var(--line);font-size:13px}
+  .empty b{color:var(--text);display:block;font-family:'Chakra Petch',sans-serif;letter-spacing:1.5px;margin-bottom:6px;font-size:15px}
+
+  /* ---- BUILD TAB ---- */
+  .phase{border:1px solid var(--line);background:var(--panel);margin-bottom:10px}
+  .phase-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+  .phase-num{font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:700;color:var(--bg);background:var(--hud);width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .phase-num.partial{background:var(--st-found)}
+  .phase-num.empty-st{background:var(--dim2);color:var(--text)}
+  .phase-meta{flex:1;min-width:0}
+  .phase-title{font-family:'Chakra Petch',sans-serif;font-size:14px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+  .phase-sub{font-size:10.5px;color:var(--dim);letter-spacing:.5px;margin-top:1px}
+  .phase-count{font-size:11px;color:var(--dim);letter-spacing:1px;white-space:nowrap}
+  .phase-chev{color:var(--dim);font-size:12px;transition:.2s;flex-shrink:0}
+  .phase.open .phase-chev{transform:rotate(90deg)}
+  .phase-body{display:none;border-top:1px solid var(--line);padding:4px 0 8px}
+  .phase.open .phase-body{display:block}
+
+  .callout{margin:10px 14px;border:1px solid var(--st-found);background:rgba(255,178,62,.07);padding:10px 12px;font-size:12px;line-height:1.5;color:#ffd89b}
+  .callout b{color:var(--st-found);font-family:'Chakra Petch',sans-serif;letter-spacing:.5px;display:block;margin-bottom:3px;text-transform:uppercase;font-size:11px}
+
+  .step{display:flex;gap:11px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(30,42,44,.5);transition:.12s}
+  .step:last-child{border-bottom:none}
+  .step:hover{background:var(--raised)}
+  .chk{width:19px;height:19px;border:1.5px solid var(--line-bright);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .chk::after{content:'✓';color:var(--bg);font-size:13px;font-weight:700;opacity:0;transition:.12s}
+  .step.done .chk{background:var(--hud);border-color:var(--hud)}
+  .step.done .chk::after{opacity:1}
+  .step-body{flex:1;min-width:0}
+  .step-title{font-size:13px;font-weight:500;letter-spacing:.2px;transition:.12s}
+  .step.done .step-title{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--dim2)}
+  .step-title .key{color:var(--st-found);font-size:9px;letter-spacing:1px;border:1px solid var(--st-found);padding:1px 4px;margin-left:6px;vertical-align:middle;text-transform:uppercase;font-family:'Chakra Petch'}
+  .step-note{font-size:11.5px;color:var(--dim);line-height:1.5;margin-top:4px}
+  .step-note code{background:#0a1011;border:1px solid var(--line);padding:1px 5px;color:var(--st-received);font-size:11px;border-radius:2px;white-space:nowrap}
+  .step.done .step-note{opacity:.5}
+
+  /* ---- DOCK ---- */
+  .dock{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(0deg,var(--bg) 70%,transparent);padding:12px 14px calc(12px + env(safe-area-inset-bottom));z-index:40}
+  .dock-inner{max-width:760px;margin:0 auto;display:flex;gap:8px}
+  .add-btn{flex:1;background:var(--hud);color:var(--bg);font-family:'Chakra Petch',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;padding:14px;cursor:pointer;box-shadow:0 0 0 1px var(--hud),0 4px 20px rgba(61,245,160,.25)}
+  .add-btn:hover{filter:brightness(1.1)}
+  .util{background:var(--panel);border:1px solid var(--line-bright);color:var(--dim);font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:0 14px;cursor:pointer}
+  .util:hover{color:var(--text)}
+  .toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--raised);border:1px solid var(--hud);color:var(--text);font-size:12px;letter-spacing:1px;padding:9px 16px;opacity:0;transition:.25s;z-index:50;pointer-events:none;text-transform:uppercase}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .hidden{display:none!important}
+
+  @media (max-width:480px){
+    .ro .val{font-size:17px}
+    .readouts.c4,.readouts.c5{grid-template-columns:repeat(2,1fr)}
+    .e2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hud">
+    <div class="hud-top">
+      <div class="brand">
+        <h1>FPV Build · Ground Station</h1>
+        <div class="sub" id="brandSub">Component Sourcing Tracker</div>
+      </div>
+      <div class="live" id="saveBadge"><span class="dot"></span>Saving…</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="sourcing">Sourcing<span class="mini-ct" id="tabSrcCt"></span></button>
+      <button class="tab" data-tab="build">Build<span class="mini-ct" id="tabBuildCt"></span></button>
+    </div>
+
+    <div id="hudBody"></div>
+  </header>
+
+  <!-- SOURCING VIEW -->
+  <div id="view-sourcing">
+    <div class="toolbar">
+      <input class="search" id="search" placeholder="Search parts, vendors, notes…" autocomplete="off">
+      <div class="filters" id="filters"></div>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <!-- BUILD VIEW -->
+  <div id="view-build" class="hidden"></div>
+</div>
+
+<div class="dock"><div class="dock-inner" id="dock"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ SOURCING DATA ============ */
+const STAGES = [
+  {key:'to_source', label:'To Source', short:'Source',   color:'var(--st-source)'},
+  {key:'found',     label:'Found',     short:'Found',    color:'var(--st-found)'},
+  {key:'ordered',   label:'Ordered',   short:'Ordered',  color:'var(--st-ordered)'},
+  {key:'received',  label:'Received',  short:'Received', color:'var(--st-received)'},
+];
+const STAGE_MAP = Object.fromEntries(STAGES.map(s=>[s.key,s]));
+const COMP_KEY='fpv-tracker:components-v1', MIG_KEY='fpv-tracker:migrations-v1', BUILD_KEY='fpv-build:done-v1';
+
+const BASE = [
+  {name:'DJI FPV Goggles V2', category:'Video', vendor:'DJI', price:null, url:'', status:'received', notes:'Already owned. This is Goggles V2 — NOT DJI Goggles 2. Different compatibility.'},
+  {name:'Caddx Vista (Air Unit VTX)', category:'Video', vendor:'Caddx', price:null, url:'', status:'found', notes:'Digital VTX for Goggles V2 (720p, <28ms). Needs a SEPARATE paired camera (Nebula/Polar) — many "Vista Kits" bundle it, check what you bought.'},
+  {name:'FPV Camera (Nebula/Polar, Vista-compatible)', category:'Video', vendor:'', price:null, url:'', status:'found', notes:'Pairs with the Vista. Nano (14mm) or micro (19mm) form factor — confirm it fits your frame. Often included in the Vista Kit.'},
+  {name:'Frame', category:'Airframe', vendor:'', price:null, url:'', status:'to_source', notes:'Must fit a Vista nano/micro camera (14mm or 19mm) — confirm cam mount.'},
+  {name:'Flight Controller', category:'Electronics', vendor:'', price:null, url:'', status:'to_source', notes:'Needs a spare UART free for the Vista.'},
+  {name:'ESC (4-in-1)', category:'Electronics', vendor:'', price:null, url:'', status:'to_source', notes:''},
+  {name:'Motors (×4)', category:'Power', vendor:'', price:null, url:'', status:'to_source', notes:''},
+  {name:'Propellers', category:'Power', vendor:'', price:null, url:'', status:'to_source', notes:'Buy spares — you will break some.'},
+  {name:'Radio Receiver (FrSky ACCST)', category:'Radio', vendor:'FrSky', price:null, url:'', status:'to_source', notes:'ACCST/D16 RX — e.g. R-XSR or XM+. Binds to the radio\u2019s internal module → Betaflight protocol SBUS.'},
+  {name:'Radio Transmitter (FrSky ACCST)', category:'Radio', vendor:'FrSky', price:null, url:'', status:'to_source', notes:'Confirmed ACCST (D16). Internal RF module handles the bind.'},
+  {name:'LiPo Batteries', category:'Power', vendor:'', price:null, url:'', status:'to_source', notes:''},
+  {name:'LiPo Charger', category:'Power', vendor:'', price:null, url:'', status:'to_source', notes:''},
+  {name:'Antennas', category:'Radio', vendor:'', price:null, url:'', status:'to_source', notes:''},
+  {name:'Wiring / XT60 connectors', category:'Misc', vendor:'', price:null, url:'', status:'to_source', notes:''},
+];
+
+/* Comprehensive consumables + tools — also back-filled into existing lists via migration */
+const CONSUMABLES = [
+  {name:'Heat shrink tubing (assorted)', category:'Misc', notes:'Insulate solder joints + tidy cable runs.'},
+  {name:'LiPo battery straps', category:'Misc', notes:'Get spares — they wear and snap.'},
+  {name:'Battery anti-slip pad', category:'Misc', notes:'Stops the pack sliding on the frame plate.'},
+  {name:'Low-ESR capacitor (1000µF 35V)', category:'Misc', notes:'Solder across battery pads — smooths voltage spikes, protects the Vista + FC.'},
+  {name:'Zip ties (assorted)', category:'Misc', notes:'Strain relief + antenna routing.'},
+  {name:'Thread locker (blue Loctite)', category:'Misc', notes:'On motor screws so vibration doesn\u2019t back them out.'},
+  {name:'Solder (leaded 63/37, rosin-core 0.7mm)', category:'Misc', notes:'Leaded flows easier for FPV joints.'},
+  {name:'Soldering flux', category:'Misc', notes:'Makes clean joints far easier on FC pads.'},
+  {name:'Soft-mount grommets / nylon standoffs', category:'Misc', notes:'Isolate the FC stack from frame vibration.'},
+  {name:'Kapton (polyimide) tape', category:'Misc', notes:'Protects the FC + exposed pads from shorts.'},
+  {name:'Double-sided foam / VHB tape', category:'Misc', notes:'Mount RX, capacitor, Vista module.'},
+  {name:'Foam padding (RX / cam protection)', category:'Misc', notes:''},
+  {name:'Liquid electrical tape / conformal coating', category:'Misc', notes:'Waterproof + protect solder joints.'},
+  {name:'TPU antenna mounts', category:'Misc', notes:'Printable — protect Vista + RX antennas in crashes.'},
+  {name:'Soldering iron + assorted tips', category:'Tools', notes:'~60W temp-controlled; chisel tip for big pads.'},
+  {name:'Hex drivers (1.5 / 2.0 / 2.5mm)', category:'Tools', notes:'Standard FPV frame + motor hardware.'},
+  {name:'Smoke stopper', category:'Tools', notes:'Inline on first power-up — catches shorts before they fry the board.'},
+  {name:'Multimeter', category:'Tools', notes:'Continuity check joints + verify no shorts before powering.'},
+  {name:'Prop / motor nut tool', category:'Tools', notes:''},
+];
+const CONSUMABLE_DEFAULTS = {price:null, vendor:'', url:'', status:'to_source'};
+
+/* ============ BUILD GUIDE DATA ============ */
+const BUILD = [
+  {id:'p1', title:'Assembly — Hardware', sub:'Solder, stack, wire, mount',
+   steps:[
+    {id:'a1', t:'Inventory + inspect every part', n:'Lay everything out against the Sourcing list. Check motors spin freely, frame for cracks, FC/ESC for damage.'},
+    {id:'a2', t:'Solder motors to the 4-in-1 ESC', n:'Or plug in if your ESC has motor connectors. Keep leads short and tidy.'},
+    {id:'a3', t:'Solder battery leads + XT60 + capacitor', n:'Solder the XT60 to the ESC battery pads, then bridge a <code>1000µF 35V</code> low-ESR cap across the same pads (long leg = +). This protects the Vista and FC from voltage spikes.'},
+    {id:'a4', t:'Mount + connect the FC/ESC stack', n:'Use soft-mount grommets to isolate vibration. Connect the FC↔ESC harness; double-check orientation arrow points forward.'},
+    {id:'a5', t:'Wire the Caddx Vista VTX', key:true, n:'Power → VBAT pad (Vista takes 7.4–26.4V, direct 2S–6S is fine) · GND → GND · Vista RX → FC TX pad · Vista TX → FC RX pad (this UART carries the OSD/MSP). The Vista handles video only — your FrSky receiver handles control, wired separately.'},
+    {id:'a5c', t:'Connect the camera to the Vista', key:true, n:'The Nebula/Polar camera plugs into the Vista module via its ribbon connector — NOT into the flight controller. (This is the big difference from the all-in-one O3.)'},
+    {id:'a6', t:'Wire the radio receiver to a spare UART', n:'RX 5V + GND + SBUS signal → an FC RX pad on a free UART. Note which UART — you\u2019ll need it in Betaflight.'},
+    {id:'a7', t:'Mount motors, route + heat-shrink wires', n:'Thread-lock (blue) the motor screws — verify screw length doesn\u2019t hit the windings. Heat-shrink joints, zip-tie the runs.'},
+    {id:'a8', t:'Mount the camera + Vista antennas', n:'Confirm the nano (14mm) / micro (19mm) camera fits your frame bracket. Use TPU mounts to keep the Vista + RX antennas clear of props and protected.'},
+    {id:'a9', t:'Fit battery pad + strap, final tidy', n:'Anti-slip pad on the plate, strap routed. Tuck and secure all wiring away from props.'},
+    {id:'a10', t:'First power-up through a smoke stopper', key:true, n:'NO PROPS. Use a smoke stopper inline for the first battery connection — if there\u2019s a short, it limits current before anything fries. No smoke, no hot components = good.'},
+   ]},
+  {id:'p2', title:'Firmware — Flashing', sub:'Betaflight, Vista, radio',
+   steps:[
+    {id:'f1', t:'Install the Betaflight Configurator', n:'Use the online app at <code>app.betaflight.com</code> (Chrome/Edge), or the desktop Configurator. Current stable is the 2025.12 series (a.k.a. 4.6).'},
+    {id:'f2', t:'Identify your FC target', n:'Connect via USB — the target shows at the top of the Configurator. If not, type <code>version</code> in the CLI tab; the first line is the target name.'},
+    {id:'f3', t:'Flash latest stable Betaflight (DFU mode)', key:true, n:'Firmware Flasher tab → pick your target → latest stable → it uses Cloud Build now, so tick the options you need (e.g. SBUS receiver) BEFORE flashing, or they won\u2019t be in the firmware. Board enters DFU automatically; if not, hold boot button.'},
+    {id:'f4', t:'Update Vista + Goggles V2 firmware', n:'Update both via DJI Assistant 2 (DJI FPV series) over USB-C, or through the goggles. Mismatched Vista ↔ goggles firmware is a common no-video cause.'},
+    {id:'f5', t:'Update the FrSky radio to current EdgeTX', n:'Flash/update EdgeTX via the SD card or EdgeTX Companion so it supports ACCST/D16 and model setup.'},
+   ]},
+  {id:'p3', title:'Software — Betaflight Config', sub:'Ports, RX, OSD, motors',
+   callout:'OSD on the Vista + Goggles V2: the simple path gives you a basic OSD (enable MSP on the Vista\u2019s UART, then turn ON Settings → Display → Custom OSD in the goggles). For the full Betaflight OSD you need the WTFOS mod (fpv.wtf) on both the goggles and the Vista — see the OSD step below.',
+   steps:[
+    {id:'s1', t:'Ports tab — enable the Vista + receiver UARTs', key:true, n:'On the Vista\u2019s UART: enable <code>MSP</code> (basic OSD), or set Peripherals to <code>VTX (MSP+DisplayPort)</code> if you\u2019re going the full-OSD route. On the receiver\u2019s UART: enable <code>Serial RX</code>. Save & Reboot.'},
+    {id:'s2', t:'Receiver tab — set protocol + check channels', key:true, n:'FrSky ACCST → Serial Receiver Provider = <code>SBUS</code>. Move the sticks and confirm the channel map reads AETR correctly.'},
+    {id:'s3', t:'Turn on the OSD', key:true, n:'Basic: in the goggles, Settings → Display → <code>Custom OSD ON</code>. Full Betaflight OSD: install WTFOS + the msp-osd package on BOTH the Goggles V2 and the Vista (via fpv.wtf), set the UART to VTX (MSP+DisplayPort), then in CLI <code>set osd_displayport_device = MSP</code> / <code>set vcd_video_system = HD</code> / <code>save</code> — and turn the goggles\u2019 Custom OSD OFF so elements don\u2019t duplicate.'},
+    {id:'s4', t:'Configuration tab — ESC protocol + orientation', n:'Set ESC/motor protocol to <code>DShot600</code>. Set board orientation (yaw) if the FC is mounted rotated. Enable any features you need.'},
+    {id:'s5', t:'Modes tab — arm + flight modes', n:'Assign an Arm switch, flight modes (Angle / Horizon / Acro), Beeper, and Turtle/Crashflip. Consider a Prearm switch for safety.'},
+    {id:'s6', t:'OSD tab — place your elements', n:'Battery voltage, mAh used, timer, link quality / RSSI, and warnings. Keep it minimal so it doesn\u2019t clutter the feed.'},
+    {id:'s7', t:'Motors tab — verify order + direction', key:true, n:'PROPS OFF. Spin each motor in the Configurator: confirm motor 1–4 are in the right corners and spin the correct direction. Reverse wrong ones in BLHeli/Bluejay (or flip two motor wires).'},
+    {id:'s8', t:'PID / Rates — start from defaults', n:'Default tune is good for a first flight. Set your rates to taste. Don\u2019t chase a custom tune until it flies.'},
+    {id:'s9', t:'Failsafe — set to Drop', n:'Configuration → Failsafe stage 2 = Drop (motors off) for a fresh build. Verify it triggers when you power off the radio (props off).'},
+   ]},
+  {id:'p4', title:'Radio — Binding & Model', sub:'ACCST bind, model, failsafe',
+   callout:'Link confirmed: FrSky ACCST (D16) — receiver bound to the radio\u2019s internal RF module, read in Betaflight as SBUS. No external module needed.',
+   steps:[
+    {id:'r1', t:'Set the radio\u2019s internal RF to ACCST D16', key:true, n:'In the model\u2019s setup, internal module = ACCST / D16 mode (matches an R-XSR / XM+ receiver).'},
+    {id:'r2', t:'Bind the receiver to the transmitter', n:'Enter Bind on the radio\u2019s internal module, power the RX in bind mode (hold its bind button), wait for the solid-LED confirmation, then exit bind.'},
+    {id:'r3', t:'Create the model in EdgeTX', n:'New model, set channel order to AETR to match Betaflight, assign your arm + mode switches to channels 5/6/etc.'},
+    {id:'r4', t:'Calibrate the gimbals/sticks', n:'EdgeTX → hardware calibration. Then re-check the channel monitor and Betaflight Receiver tab agree.'},
+    {id:'r5', t:'Set radio + Betaflight failsafe', key:true, n:'Set the RX failsafe to "no pulses" so Betaflight\u2019s Drop failsafe takes over. Test by switching the radio off with props removed.'},
+   ]},
+  {id:'p5', title:'Pre-flight & First Flight', sub:'Calibrate, check, hover',
+   steps:[
+    {id:'c1', t:'Calibrate the accelerometer', n:'Setup tab → place the quad perfectly level → Calibrate Accelerometer.'},
+    {id:'c2', t:'Confirm OSD shows in the goggles', n:'No OSD? Check Custom OSD is ON in the goggles (basic path), MSP is enabled on the right UART, and the Vista is linked. If using WTFOS, confirm msp-osd is installed on both ends.'},
+    {id:'c3', t:'Props-off arm test', n:'Arm on the bench, confirm all four motors respond and idle smoothly. Disarm.'},
+    {id:'c4', t:'Mount props — mind direction', key:true, n:'Props-out (or props-in) convention: each prop must match its motor\u2019s spin direction. Wrong prop = it flips on takeoff.'},
+    {id:'c5', t:'Range / link check', n:'Walk away a short distance with the quad on (props off or held) and confirm the link + video stay solid before committing to flight.'},
+    {id:'c6', t:'First hover in open space', n:'Low, gentle hover. Check it\u2019s stable and drifts minimally. Land, feel motors for excess heat.'},
+    {id:'c7', t:'Back up your config', n:'CLI → <code>diff all</code> → save the output to a text file. Now you can restore your whole setup after any reflash.'},
+   ]},
+];
+
+/* ============ STATE ============ */
+let data=[], filter='all', editing=null, searchTerm='', activeTab='sourcing';
+let done={}, openPhases={p1:true};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ============ STORAGE (works inside Claude AND as a downloaded/standalone file) ============ */
+let STORE_MODE='memory';
+const Store=(()=>{
+  // 1) Prefer Claude's artifact storage when it exists (syncs to your Claude account)
+  if(typeof window!=='undefined'&&window.storage&&typeof window.storage.get==='function'){
+    STORE_MODE='claude';
+    return {get:k=>Store.get(k),set:(k,v)=>Store.set(k,v)};
+  }
+  // 2) Otherwise use THIS device's browser storage — survives reloads, works offline/standalone
+  try{
+    const t='__fpv_test__';localStorage.setItem(t,'1');localStorage.removeItem(t);
+    STORE_MODE='local';
+    return {
+      get:async k=>{const v=localStorage.getItem(k);return v==null?null:{key:k,value:v};},
+      set:async(k,v)=>{localStorage.setItem(k,v);return{key:k,value:v};}
+    };
+  }catch(e){}
+  // 3) Last resort: in-memory only (won't survive a reload — use the Backup button)
+  const mem={};STORE_MODE='memory';
+  return {get:async k=>k in mem?{key:k,value:mem[k]}:null,set:async(k,v)=>{mem[k]=v;return{key:k,value:v};}};
+})();
+function updateSaveBadge(){
+  const el=document.getElementById('saveBadge');if(!el)return;
+  const map={claude:['Synced to Claude','var(--hud)'],local:['Saved on this device','var(--hud)'],memory:['⚠ Not saving — Backup!','var(--st-source)']};
+  const [txt,col]=map[STORE_MODE];
+  el.style.color=col;el.querySelector('.dot').style.background=col;el.querySelector('.dot').style.boxShadow='0 0 8px '+col;
+  el.childNodes[1].nodeValue=txt;
+}
+
+/* ============ STORAGE ============ */
+async function load(){
+  try{const r=await Store.get(COMP_KEY);data=r&&r.value?JSON.parse(r.value):null;}catch(e){data=null;}
+  if(!data){
+    data=BASE.map(s=>({id:uid(),...s}))
+      .concat(CONSUMABLES.map(c=>({id:uid(),...CONSUMABLE_DEFAULTS,...c})));
+    await saveComp();
+  }
+  await migrate();
+  try{const r=await Store.get(BUILD_KEY);done=r&&r.value?JSON.parse(r.value):{};}catch(e){done={};}
+  renderAll();updateSaveBadge();
+}
+async function migrate(){
+  let applied=[];
+  try{const r=await Store.get(MIG_KEY);applied=r&&r.value?JSON.parse(r.value):[];}catch(e){applied=[];}
+  if(!applied.includes('consumables-v2')){
+    const have=new Set(data.map(d=>d.name.toLowerCase()));
+    let added=0;
+    CONSUMABLES.forEach(c=>{
+      if(!have.has(c.name.toLowerCase())){ data.push({id:uid(),...CONSUMABLE_DEFAULTS,...c}); added++; }
+    });
+    applied.push('consumables-v2');
+    if(added) await saveComp();
+    try{await Store.set(MIG_KEY,JSON.stringify(applied));}catch(e){}
+  }
+  if(!applied.includes('vista-switch-v3')){
+    const o3=data.find(d=>/o3/i.test(d.name)&&!/vista/i.test(d.name));
+    if(o3){
+      o3.name='Caddx Vista (Air Unit VTX)';o3.vendor='Caddx';
+      if(o3.price===229)o3.price=null;
+      o3.notes='Digital VTX for Goggles V2 (720p, <28ms). Needs a SEPARATE paired camera (Nebula/Polar) — many "Vista Kits" bundle it, check what you bought.';
+    }
+    if(!data.some(d=>/camera|nebula|polar/i.test(d.name))){
+      data.push({id:uid(),name:'FPV Camera (Nebula/Polar, Vista-compatible)',category:'Video',vendor:'',price:null,url:'',status:o3?o3.status:'to_source',notes:'Pairs with the Vista. Nano (14mm) or micro (19mm) form factor — confirm it fits your frame. Often included in the Vista Kit.'});
+    }
+    const fr=data.find(d=>/^frame$/i.test(d.name));
+    if(fr&&/25\.5|o3/i.test(fr.notes))fr.notes='Must fit a Vista nano/micro camera (14mm or 19mm) — confirm cam mount.';
+    const rx=data.find(d=>/receiver/i.test(d.name));
+    if(rx){if(!/accst/i.test(rx.name))rx.name='Radio Receiver (FrSky ACCST)';rx.vendor=rx.vendor||'FrSky';rx.notes='ACCST/D16 RX — e.g. R-XSR or XM+. Binds to the radio\u2019s internal module → Betaflight protocol SBUS.';}
+    const tx=data.find(d=>/transmitter/i.test(d.name));
+    if(tx&&!/accst/i.test(tx.name))tx.name='Radio Transmitter (FrSky ACCST)';
+    const fc=data.find(d=>/flight controller/i.test(d.name));
+    if(fc&&/o3/i.test(fc.notes))fc.notes='Needs a spare UART free for the Vista.';
+    applied.push('vista-switch-v3');
+    await saveComp();
+    try{await Store.set(MIG_KEY,JSON.stringify(applied));}catch(e){}
+  }
+}
+async function saveComp(){try{await Store.set(COMP_KEY,JSON.stringify(data));}catch(e){toast('Save failed');}}
+async function saveBuild(){try{await Store.set(BUILD_KEY,JSON.stringify(done));}catch(e){toast('Save failed');}}
+
+/* ============ HELPERS ============ */
+const fmt=n=>n==null||n===''?'—':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+function compStats(){
+  const c={to_source:0,found:0,ordered:0,received:0};let committed=0,received=0,total=0;
+  data.forEach(d=>{c[d.status]=(c[d.status]||0)+1;const p=Number(d.price)||0;total+=p;
+    if(d.status==='ordered'||d.status==='received')committed+=p;if(d.status==='received')received+=p;});
+  return {c,committed,received,total,n:data.length};
+}
+function buildStats(){
+  let total=0,d=0;const per={};
+  BUILD.forEach(p=>{let pd=0;p.steps.forEach(s=>{total++;if(done[s.id]){d++;pd++;}});per[p.id]={done:pd,total:p.steps.length};});
+  return {total,done:d,per,pct:total?Math.round(d/total*100):0};
+}
+
+/* ============ RENDER: HEADER ============ */
+function renderHeader(){
+  document.getElementById('brandSub').textContent = activeTab==='sourcing'?'Component Sourcing Tracker':'Build Process Guide';
+  const cs=compStats(), bs=buildStats();
+  document.getElementById('tabSrcCt').textContent = cs.c.received+'/'+cs.n+' in hand';
+  document.getElementById('tabBuildCt').textContent = bs.pct+'% done';
+  const body=document.getElementById('hudBody');
+
+  if(activeTab==='sourcing'){
+    body.innerHTML=`
+      <div class="readouts c4">${STAGES.map(st=>`
+        <div class="ro"><div class="lab">${st.label}</div>
+        <div class="val" style="color:${st.color}">${cs.c[st.key]||0}</div></div>`).join('')}</div>
+      <div class="link-bar"><div class="lbl"><span>Parts In Hand</span><span>${Math.round((cs.c.received||0)/(cs.n||1)*100)}% · ${cs.c.received}/${cs.n}</span></div>
+        <div class="track">${STAGES.map(st=>`<div class="seg" style="width:${cs.n?(cs.c[st.key]||0)/cs.n*100:0}%;background:${st.color};opacity:${st.key==='received'?1:.45}"></div>`).join('')}</div></div>
+      <div class="spend"><span>Committed <b>${fmt(cs.committed)}</b></span><span>In hand <b>${fmt(cs.received)}</b></span><span>Est. total <b>${fmt(cs.total)}</b></span></div>`;
+  } else {
+    body.innerHTML=`
+      <div class="readouts c5">${BUILD.map((p,i)=>{const pr=bs.per[p.id];const full=pr.done===pr.total;
+        return `<div class="ro"><div class="lab">P${i+1}</div>
+        <div class="val" style="color:${full?'var(--st-received)':pr.done?'var(--st-found)':'var(--dim2)'}">${pr.done}/${pr.total}</div></div>`;}).join('')}</div>
+      <div class="link-bar"><div class="lbl"><span>Build Completion</span><span>${bs.pct}% · ${bs.done}/${bs.total} steps</span></div>
+        <div class="track"><div class="seg" style="width:${bs.pct}%;background:var(--hud)"></div></div></div>`;
+  }
+}
+
+/* ============ RENDER: SOURCING ============ */
+function renderFilters(){
+  const s=compStats();
+  const opts=[{key:'all',label:'All',ct:s.n,color:'var(--hud)'}].concat(STAGES.map(st=>({key:st.key,label:st.short,ct:s.c[st.key]||0,color:st.color})));
+  document.getElementById('filters').innerHTML=opts.map(o=>`
+    <button class="fpill ${filter===o.key?'on':''}" data-f="${o.key}" style="${filter===o.key?`background:${o.color};border-color:${o.color}`:''}">
+      ${o.label}<span class="ct">${o.ct}</span></button>`).join('');
+}
+function matches(d){
+  if(filter!=='all'&&d.status!==filter)return false;
+  if(searchTerm){const hay=(d.name+' '+d.category+' '+d.vendor+' '+d.notes).toLowerCase();if(!hay.includes(searchTerm))return false;}
+  return true;
+}
+function cardHTML(d){
+  if(editing===d.id)return editHTML(d);
+  const st=STAGE_MAP[d.status];
+  const link=d.url?`<a href="${esc(d.url)}" target="_blank" rel="noopener">link ↗</a>`:'';
+  return `<div class="card" style="border-left-color:${st.color}"><div class="card-main">
+    <div class="card-row1"><span class="cname">${esc(d.name)}</span><span class="cprice">${fmt(d.price)}</span></div>
+    <div class="cmeta"><span>▸ ${esc(d.category||'—')}</span>${d.vendor?`<span>· ${esc(d.vendor)}</span>`:''}${link}</div>
+    ${d.notes?`<div class="cnote">${esc(d.notes)}</div>`:''}
+    <div class="stages">${STAGES.map(s=>`<div class="stage ${d.status===s.key?'act':''}" data-set="${d.id}" data-st="${s.key}" style="${d.status===s.key?`background:${s.color}`:''}">${s.short}</div>`).join('')}</div>
+    <div class="card-actions"><button class="mini" data-edit="${d.id}">Edit</button><button class="mini del" data-del="${d.id}">Delete</button></div>
+  </div></div>`;
+}
+function editHTML(d){
+  const isNew=d.id==='new';
+  return `<div class="card" style="border-left-color:var(--hud)"><div class="edit" data-form="${d.id}">
+    <div><label>Component</label><input data-k="name" value="${esc(d.name)}" placeholder="e.g. Flight Controller"></div>
+    <div class="e2"><div><label>Category</label><input data-k="category" value="${esc(d.category)}" placeholder="Electronics" list="cats"></div>
+      <div><label>Price ($)</label><input data-k="price" type="number" inputmode="decimal" value="${d.price==null?'':d.price}" placeholder="0"></div></div>
+    <div><label>Vendor / Source</label><input data-k="vendor" value="${esc(d.vendor)}" placeholder="Where you're buying it"></div>
+    <div><label>Link</label><input data-k="url" value="${esc(d.url)}" placeholder="https://…"></div>
+    <div><label>Status</label><select data-k="status">${STAGES.map(s=>`<option value="${s.key}" ${d.status===s.key?'selected':''}>${s.label}</option>`).join('')}</select></div>
+    <div><label>Notes</label><textarea data-k="notes" placeholder="Compatibility, specs, reminders…">${esc(d.notes)}</textarea></div>
+    <div class="ebtns"><button class="btn btn-save" data-save="${d.id}">${isNew?'Add':'Save'}</button><button class="btn btn-cancel" data-cancel="1">Cancel</button></div>
+  </div></div>`;
+}
+function renderSourcing(){
+  renderFilters();
+  const list=document.getElementById('list');let html='';
+  if(editing==='new')html+=editHTML({id:'new',name:'',category:'',vendor:'',price:null,url:'',status:'to_source',notes:''});
+  const visible=data.filter(matches);
+  if(!visible.length&&editing!=='new'){list.innerHTML=`<div class="empty"><b>No components here</b>${data.length?'Adjust the filter or search.':'Tap “Add Component” to start.'}</div>`;return;}
+  const cats=[...new Set(visible.map(d=>d.category||'Uncategorised'))];
+  cats.forEach(cat=>{const items=visible.filter(d=>(d.category||'Uncategorised')===cat);
+    html+=`<div class="group-head">${esc(cat)}</div>`+items.map(cardHTML).join('');});
+  list.innerHTML=html;
+  if(editing==='new'){const f=document.querySelector('[data-form="new"] [data-k="name"]');if(f)f.focus();}
+}
+
+/* ============ RENDER: BUILD ============ */
+function noteHTML(n){return n;} // notes are authored with safe inline <code> tags only
+function renderBuild(){
+  const bs=buildStats();
+  document.getElementById('view-build').innerHTML=BUILD.map((p,i)=>{
+    const pr=bs.per[p.id];const full=pr.done===pr.total&&pr.total>0;const open=openPhases[p.id];
+    const numCls=full?'':(pr.done?'partial':'empty-st');
+    return `<div class="phase ${open?'open':''}">
+      <div class="phase-head" data-phase="${p.id}">
+        <div class="phase-num ${numCls}">${full?'✓':(i+1)}</div>
+        <div class="phase-meta"><div class="phase-title">${esc(p.title)}</div><div class="phase-sub">${esc(p.sub)}</div></div>
+        <span class="phase-count">${pr.done}/${pr.total}</span><span class="phase-chev">▶</span>
+      </div>
+      <div class="phase-body">
+        ${p.callout?`<div class="callout"><b>⚠ Read first</b>${p.callout}</div>`:''}
+        ${p.steps.map(s=>`<div class="step ${done[s.id]?'done':''}" data-step="${s.id}">
+          <div class="chk"></div>
+          <div class="step-body"><div class="step-title">${esc(s.t)}${s.key?'<span class="key">key</span>':''}</div>
+          ${s.n?`<div class="step-note">${noteHTML(s.n)}</div>`:''}</div>
+        </div>`).join('')}
+      </div></div>`;
+  }).join('')
+  +`<div style="text-align:center;padding:18px 0 4px"><button class="util" data-reset="1" style="font-size:11px;padding:8px 16px;border-color:var(--line)">Reset all checks</button></div>`;
+}
+
+/* ============ DOCK ============ */
+function exportData(){
+  const payload={_app:'fpv-build-station',_v:1,exported:new Date().toISOString(),components:data,build:done};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='fpv-build-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},600);
+  toast('Saved a backup file');
+}
+async function importData(file){
+  try{
+    const p=JSON.parse(await file.text());
+    if(Array.isArray(p.components))data=p.components;
+    if(p.build&&typeof p.build==='object')done=p.build;
+    await saveComp();await saveBuild();renderAll();toast('Loaded from file');
+  }catch(e){toast('Import failed — bad file');}
+}
+function renderDock(){
+  const dock=document.getElementById('dock');
+  const saveLoad=`<button class="util" id="exportBtn" title="Save a backup file to your device">Save</button><button class="util" id="importBtn" title="Load a backup file">Load</button>`;
+  if(activeTab==='sourcing'){
+    dock.innerHTML=`<button class="add-btn" id="addBtn">+ Add Component</button>`+saveLoad;
+    document.getElementById('addBtn').onclick=()=>{editing='new';filter='all';renderAll();window.scrollTo({top:0,behavior:'smooth'});};
+  } else {
+    dock.innerHTML=`<button class="add-btn" id="expandBtn">Expand / Collapse</button>`+saveLoad;
+    document.getElementById('expandBtn').onclick=()=>{const anyOpen=Object.values(openPhases).some(Boolean);openPhases={};BUILD.forEach(p=>openPhases[p.id]=!anyOpen);renderBuild();};
+  }
+  document.getElementById('exportBtn').onclick=exportData;
+  document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+}
+
+/* ============ ORCHESTRATION ============ */
+function renderAll(){
+  renderHeader();renderDock();
+  document.getElementById('view-sourcing').classList.toggle('hidden',activeTab!=='sourcing');
+  document.getElementById('view-build').classList.toggle('hidden',activeTab!=='build');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===activeTab));
+  if(activeTab==='sourcing')renderSourcing();else renderBuild();
+}
+
+/* ============ EVENTS ============ */
+function readForm(id){const form=document.querySelector(`[data-form="${id}"]`);const o={};
+  form.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;o[k]=k==='price'?(el.value===''?null:Number(el.value)):el.value.trim();});return o;}
+let toastTimer;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1700);}
+
+document.addEventListener('click',async(e)=>{
+  const tab=e.target.closest('[data-tab]');
+  if(tab){activeTab=tab.dataset.tab;editing=null;renderAll();return;}
+
+  const ph=e.target.closest('[data-phase]');
+  if(ph){openPhases[ph.dataset.phase]=!openPhases[ph.dataset.phase];renderBuild();return;}
+
+  const rst=e.target.closest('[data-reset]');
+  if(rst){if(confirm('Clear all build checkmarks?')){done={};await saveBuild();renderAll();toast('Checklist reset');}return;}
+
+  const stp=e.target.closest('[data-step]');
+  if(stp){const id=stp.dataset.step;done[id]=!done[id];if(!done[id])delete done[id];await saveBuild();renderHeader();renderBuild();return;}
+
+  const t=e.target.closest('[data-set],[data-edit],[data-del],[data-save],[data-cancel],[data-f]');
+  if(!t)return;
+  if(t.dataset.f){filter=t.dataset.f;renderAll();return;}
+  if(t.dataset.set){const d=data.find(x=>x.id===t.dataset.set);if(d&&d.status!==t.dataset.st){d.status=t.dataset.st;await saveComp();renderAll();}return;}
+  if(t.dataset.edit){editing=t.dataset.edit;renderSourcing();return;}
+  if(t.dataset.cancel){editing=null;renderSourcing();return;}
+  if(t.dataset.del){const d=data.find(x=>x.id===t.dataset.del);if(confirm(`Delete "${d?.name||'this part'}"?`)){data=data.filter(x=>x.id!==t.dataset.del);await saveComp();renderAll();toast('Deleted');}return;}
+  if(t.dataset.save){const id=t.dataset.save;const o=readForm(id);if(!o.name){toast('Name required');return;}
+    if(id==='new'){data.unshift({id:uid(),...o});toast('Added');}else{Object.assign(data.find(x=>x.id===id),o);toast('Saved');}
+    editing=null;await saveComp();renderAll();return;}
+});
+document.getElementById('search').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase().trim();renderSourcing();});
+
+const dl=document.createElement('datalist');dl.id='cats';
+['Video','Airframe','Electronics','Power','Radio','Misc','Tools'].forEach(c=>{const o=document.createElement('option');o.value=c;dl.appendChild(o);});
+document.body.appendChild(dl);
+
+const importInput=document.createElement('input');
+importInput.type='file';importInput.id='importFile';importInput.accept='application/json,.json';importInput.style.display='none';
+importInput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)importData(f);e.target.value='';});
+document.body.appendChild(importInput);
+
+load();
+</script>
+</body>
+</html>
