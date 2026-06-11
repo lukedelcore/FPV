@@ -180,6 +180,54 @@
     .e2{grid-template-columns:1fr}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  /* ===== DIAGRAM TAB ===== */
+  .dg-viewport{position:relative;border:1px solid var(--line-bright);background:radial-gradient(700px 460px at 50% 28%, #11201d 0%, #070a0b 78%);height:min(58vh,460px);overflow:hidden}
+  #dg-host{position:absolute;inset:0}
+  #dg-host canvas{display:block;width:100%;height:100%;touch-action:none}
+  .dg-vptag{position:absolute;left:14px;top:12px;z-index:3;font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:2px;color:var(--dim);pointer-events:none}
+  .dg-hint{position:absolute;left:14px;bottom:12px;z-index:3;font-family:'JetBrains Mono';font-size:10px;color:var(--dim);pointer-events:none;transition:opacity .4s;display:flex;align-items:center;gap:7px}
+  .dg-pulse{width:6px;height:6px;border-radius:50%;background:var(--hud);box-shadow:0 0 8px var(--hud);animation:blink 1.6s steps(1) infinite}
+  .dg-cursor{position:absolute;z-index:4;pointer-events:none;font-family:'JetBrains Mono';font-size:10px;letter-spacing:.5px;background:var(--hud);color:var(--bg);font-weight:700;padding:3px 8px;transform:translate(12px,-50%);opacity:0;transition:opacity .12s;white-space:nowrap}
+  .dg-panel{border:1px solid var(--line-bright);border-top:0;background:var(--panel);padding:16px 16px 15px}
+  .dg-status{font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:7px;margin-bottom:11px}
+  .dg-live{width:7px;height:7px;border-radius:50%;background:var(--dim2);transition:.25s}
+  .dg-panel.dg-on .dg-live{background:var(--hud);box-shadow:0 0 8px var(--hud)}
+  .dg-panel.dg-on .dg-lbl{color:var(--hud)}
+  .dg-name{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px;letter-spacing:.5px;line-height:1.15;margin:0 0 3px;min-height:22px}
+  .dg-sys{font-family:'JetBrains Mono';font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--st-ordered);margin:0 0 15px}
+  .dg-field{margin:0 0 13px}
+  .dg-field .dgl{font-family:'JetBrains Mono';font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin:0 0 4px;display:flex;align-items:center;gap:7px}
+  .dg-field .dgl::before{content:'';width:13px;height:1px;background:var(--line-bright)}
+  .dg-field.role .dgl{color:var(--st-ordered)} .dg-field.role .dgl::before{background:var(--st-ordered)}
+  .dg-field.warn .dgl{color:var(--st-found)} .dg-field.warn .dgl::before{background:var(--st-found)}
+  .dg-field p{margin:0;font-size:12.5px;line-height:1.5;color:var(--text)}
+  .dg-field.warn p{color:#ffe2bd}
+  .dg-empty{color:var(--dim);font-size:12.5px;line-height:1.55}
+  .dg-empty strong{color:var(--text)}
+  .dg-manifest,.dg-sidegear{margin-top:12px;border:1px solid var(--line);background:var(--panel);padding:14px}
+  .dg-mhead{font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin:0 0 11px}
+  .dg-groups{display:flex;flex-wrap:wrap;gap:16px}
+  .dg-grp .dg-glab{font-family:'JetBrains Mono';font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim2);margin:0 0 7px}
+  .dg-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .dg-chip{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);background:var(--raised);border:1px solid var(--line-bright);padding:6px 10px;cursor:pointer;transition:.15s;user-select:none}
+  .dg-chip:hover{color:var(--text)}
+  .dg-chip.on{color:var(--bg);background:var(--hud);border-color:var(--hud);font-weight:700}
+  #dgSgList{display:flex;flex-direction:column;gap:9px}
+  .dg-sg{border:1px solid var(--line-bright);background:var(--raised);padding:11px 12px;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}
+  .dg-sgtop{display:flex;align-items:center;gap:10px}
+  .dg-sgic{width:32px;height:32px;flex:none;color:var(--st-ordered);border:1px solid var(--line-bright);display:flex;align-items:center;justify-content:center;background:#0b1112;transition:.18s}
+  .dg-sgic svg{width:19px;height:19px}
+  .dg-sgname{font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:13px;letter-spacing:.5px;margin:0}
+  .dg-sgsys{font-family:'JetBrains Mono';font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin:2px 0 0}
+  .dg-sgdet{max-height:0;overflow:hidden;opacity:0;transition:max-height .3s,opacity .22s,margin .3s;margin-top:0}
+  .dg-sg:hover,.dg-sg.open{transform:scale(1.02);border-color:var(--hud);box-shadow:0 8px 24px -14px #000}
+  .dg-sg:hover .dg-sgic,.dg-sg.open .dg-sgic{color:var(--hud);border-color:var(--hud)}
+  .dg-sg:hover .dg-sgdet,.dg-sg.open .dg-sgdet{max-height:380px;opacity:1;margin-top:11px}
+  .dg-fld{margin:0 0 9px}
+  .dg-fld .l{font-family:'JetBrains Mono';font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin:0 0 3px}
+  .dg-fld.role .l{color:var(--st-ordered)} .dg-fld.warn .l{color:var(--st-found)}
+  .dg-fld p{margin:0;font-size:11.5px;line-height:1.45;color:var(--text)}
+  .dg-fld.warn p{color:#ffe2bd}
 </style>
 </head>
 <body>
@@ -197,6 +245,7 @@
     <div class="tabs">
       <button class="tab on" data-tab="sourcing">Sourcing<span class="mini-ct" id="tabSrcCt"></span></button>
       <button class="tab" data-tab="build">Build<span class="mini-ct" id="tabBuildCt"></span></button>
+      <button class="tab" data-tab="diagram">Diagram<span class="mini-ct" id="tabDiagCt"></span></button>
     </div>
 
     <div id="hudBody"></div>
@@ -213,6 +262,24 @@
 
   <!-- BUILD VIEW -->
   <div id="view-build" class="hidden"></div>
+
+  <!-- DIAGRAM VIEW -->
+  <div id="view-diagram" class="hidden">
+    <div class="dg-viewport">
+      <div id="dg-host"></div>
+      <div class="dg-vptag">5″ · 6S · TRUE-X · DIGITAL</div>
+      <div class="dg-hint" id="dgHint"><span class="dg-pulse"></span>Hover a component to pause &amp; inspect</div>
+      <div class="dg-cursor" id="dgCursor"></div>
+    </div>
+    <div class="dg-panel" id="dgPanel">
+      <div class="dg-status"><span class="dg-live"></span><span class="dg-lbl">Idle · rotating</span></div>
+      <h2 class="dg-name" id="dgName">Select a component</h2>
+      <p class="dg-sys" id="dgSys">&nbsp;</p>
+      <div id="dgBody"><p class="dg-empty"><strong>Hover or tap any part</strong> of the quad — or a chip below — to pause the spin and read what it is, what it does, and the assembly watch-outs for your build.</p></div>
+    </div>
+    <div class="dg-manifest"><p class="dg-mhead">Component manifest</p><div class="dg-groups" id="dgManifest"></div></div>
+    <div class="dg-sidegear"><p class="dg-mhead">Ground &amp; bench gear · off-craft</p><div id="dgSgList"></div></div>
+  </div>
 </div>
 
 <div class="dock"><div class="dock-inner" id="dock"></div></div>
@@ -567,11 +634,13 @@ function buildStats(){
 
 /* ============ RENDER: HEADER ============ */
 function renderHeader(){
-  document.getElementById('brandSub').textContent = activeTab==='sourcing'?'Component Sourcing Tracker':'Build Process Guide';
+  document.getElementById('brandSub').textContent = activeTab==='sourcing'?'Component Sourcing Tracker':activeTab==='build'?'Build Process Guide':'Interactive Diagram';
   const cs=compStats(), bs=buildStats();
   document.getElementById('tabSrcCt').textContent = cs.c.received+'/'+cs.n+' in hand';
   document.getElementById('tabBuildCt').textContent = bs.pct+'% done';
+  var __dgc=document.getElementById('tabDiagCt'); if(__dgc)__dgc.textContent='3D · 12 parts';
   const body=document.getElementById('hudBody');
+  if(activeTab==='diagram'){ body.innerHTML=''; return; }
 
   if(activeTab==='sourcing'){
     body.innerHTML=`
@@ -692,9 +761,11 @@ function renderDock(){
   if(activeTab==='sourcing'){
     dock.innerHTML=`<button class="add-btn" id="addBtn">+ Add Component</button>`+saveLoad;
     document.getElementById('addBtn').onclick=()=>{editing='new';filter='all';renderAll();window.scrollTo({top:0,behavior:'smooth'});};
-  } else {
+  } else if(activeTab==='build'){
     dock.innerHTML=`<button class="add-btn" id="expandBtn">Expand / Collapse</button>`+saveLoad;
     document.getElementById('expandBtn').onclick=()=>{const anyOpen=Object.values(openPhases).some(Boolean);openPhases={};BUILD.forEach(p=>openPhases[p.id]=!anyOpen);renderBuild();};
+  } else {
+    dock.innerHTML=saveLoad;
   }
   document.getElementById('exportBtn').onclick=exportData;
   document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
@@ -706,8 +777,12 @@ function renderAll(){
   renderHeader();renderDock();
   document.getElementById('view-sourcing').classList.toggle('hidden',activeTab!=='sourcing');
   document.getElementById('view-build').classList.toggle('hidden',activeTab!=='build');
+  document.getElementById('view-diagram').classList.toggle('hidden',activeTab!=='diagram');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===activeTab));
-  if(activeTab==='sourcing')renderSourcing();else renderBuild();
+  window.__diagramActive=(activeTab==='diagram');
+  if(activeTab==='sourcing')renderSourcing();
+  else if(activeTab==='build')renderBuild();
+  else if(activeTab==='diagram'&&window.initDiagram)window.initDiagram();
 }
 
 /* ============ EVENTS ============ */
@@ -753,6 +828,284 @@ document.body.appendChild(importInput);
 wireSyncPanel();
 document.getElementById('saveBadge').onclick=openSync;
 load();
+</script>
+<script>
+/* ===== INTERACTIVE DIAGRAM TAB (lazy-loaded Three.js) ===== */
+(function(){
+  const PARTS={
+    frame:{name:"TBS Source One V6",sys:"Airframe · true-X",acquired:"TBS Source One V6 — 5\" true-X, 6 mm carbon arms, 2.5 mm bottom plate, dedicated 20×20 mm rear bay for the air unit.",role:"The structural skeleton. It fixes motor-to-motor geometry, takes the crash loads, and is what every other component bolts to; the 6 mm arms are why this frame shrugs off freestyle abuse.",watch:"Chamfer the arm edges and guard the motor wires where they exit — cut phase wires are the classic Source One failure. Run the stack on 30.5×30.5 and the Vista in the rear 20×20 bay on its TPU mount so nothing grounds on the carbon."},
+    motors:{name:"iFlight Xing-E Pro 2207 · 1800KV",sys:"4× · 2207 stator · 6S",acquired:"Four iFlight Xing-E Pro 2207 motors, 1800 KV — picked for value and durability on the 6S Source One build.",role:"Turn the ESC's 3-phase output into thrust. 1800 KV on 6S with a 5\" prop is the balanced freestyle sweet spot — strong but not twitchy.",watch:"Use the supplied (short) M3 screws — anything longer bites the windings and shorts the motor. The three phase wires run down each arm to the ESC; protect them at the arm edge. Set rotation in BLHeli (props-out), and re-torque after a few packs."},
+    props:{name:"HQ Prop V2S Freestyle 5×4.3×3",sys:"Propulsion · tri-blade",acquired:"HQ Prop V2S Freestyle, 5×4.3×3 tri-blade (yellow + blue) — a tough poly freestyle prop paired with the Xing-E 1800 KV on 6S.",role:"Make the thrust. 5\" / 4.3-pitch / 3 blades is a smooth, grippy freestyle combo; the twist you see along each blade IS that pitch. The poly blend flexes instead of shattering on tree taps.",watch:"Match rotation per motor (props-out). Yellow front / blue rear gives an in-flight orientation cue. Self-locking nuts: seat them firmly — a thrown prop is an instant crash — and bin any blade that's nicked or whitening."},
+    fc:{name:"SpeedyBee F405 V5",sys:"Flight controller",acquired:"SpeedyBee F405 V5 flight controller (Betaflight) from the bundled stack — multiple UARTs, OSD, blackbox, Bluetooth config.",role:"The brain. Runs the gyro and PID loops, mixes your sticks into motor commands, draws the OSD, and ties the R-XSR, Vista and ESC together.",watch:"Point the arrow forward (or fix with Board Align). Wire R-XSR SBUS to a UART RX pad and S.Port to a spare/softserial pad; set Serial RX = SBUS. Keep the gyro soft-mounted and CLI-dump your config before any flash."},
+    esc:{name:"SpeedyBee 55A OX32 4-in-1",sys:"ESC · 55A · 3–6S",acquired:"SpeedyBee 55A OX32 4-in-1 ESC (3–6S) from the stack, plus a 35 V 1000 µF low-ESR cap across the battery pads.",role:"Takes raw 6S DC and drives each motor's three phases (the wires running in from the arms), sets timing and direction, and feeds current telemetry to the FC.",watch:"The low-ESR cap matters on a digital build — it clamps the spikes that protect both the FETs and the pricey Vista. Keep phase joints clean (cold joints = desyncs), confirm DSHOT600 matches the FC, and keep the cap leads short."},
+    vista:{name:"Caddx Vista (air unit)",sys:"Digital VTX · 5.8 GHz",acquired:"Caddx Vista digital air unit — the VTX half of your DJI digital system, paired to the DJI FPV Goggles V2.",role:"Encodes the camera feed and transmits low-latency HD video to your Goggles V2, and runs the whole digital link (with onboard recording if enabled).",watch:"It runs HOT and is expensive — never power it without its antenna attached. It sits in the rear 20×20 bay on the aqua TPU mount so it can't ground on the carbon or shake loose. First-gen protocol: Goggles V2 / V1 / Integra-class only, not O4."},
+    camera:{name:"Caddx Nebula Pro",sys:"Digital FPV camera",acquired:"Caddx Nebula Pro — the digital camera that runs off the Vista (the camera in the Vista kit).",role:"Captures the HD feed the Vista encodes. Its up-tilt sets how fast you can fly while keeping the horizon in frame.",watch:"Use the keyed coax to the Vista — don't force it — and route it clear of any prop arc. Set a freestyle up-tilt (~30°) and keep the lens square in the cage so the horizon isn't canted."},
+    vtxant:{name:"Caddx Vista antenna",sys:"Air-unit antenna",acquired:"The linear antenna that came with the Caddx Vista, feeding the 5.8 GHz digital link to your goggles.",role:"Radiates the digital video signal up to the Goggles V2. Placement is the single biggest factor in how cleanly the feed holds at range.",watch:"Keep the whip in its protective tube and standing clear of carbon and the battery, which both block signal. Don't kink the coax — and never transmit into a disconnected antenna, it damages the unit."},
+    rx:{name:"FrSky R-XSR",sys:"Receiver · ACCST D16",acquired:"FrSky R-XSR — tape-mount, dual-antenna diversity, full telemetry via SBUS + S.Port — bound to your Taranis Q X7's internal 2.4 GHz ACCST D16.",role:"Receives your control link from the Q X7 and feeds it to the FC over SBUS, while S.Port sends telemetry (RSSI, battery) back to the radio.",watch:"Verify ACCST firmware versions match (v1 vs v2/D16) before binding. Wire SBUS to a UART RX pad and S.Port to a telemetry/softserial pad on the FC (never the ESC). Splay the antennas 90° apart, away from carbon and the Vista, and bench-test failsafe."},
+    battery:{name:"Gaoneng GNB 6S 1350mAh 100C",sys:"Li-Po · 6S · XT60",acquired:"Gaoneng GNB 22.2 V 6S 1350 mAh 100C, XT60, ~208 g — you have two; chosen over the heavier CNHL 130C for a lighter freestyle feel and a touch more capacity.",role:"Powers the whole craft. 6S sets the voltage the 1800 KV motors want, 1350 mAh sets flight time, and 100C sets how hard it can be pushed.",watch:"Mind XT60 polarity — reversed is instant magic smoke (that's what the smoke stopper is for on first power-up). Don't store full or fly below ~3.5 V/cell under load, strap it tight, and charge in a LiPo-safe bag."},
+    batmount:{name:"UMMAGRIP pad + RDQ strap",sys:"Battery mount",acquired:"UMMAGAWD UMMAGRIP LITE sticky battery pad (blue) plus the RDQ 250×20 mm nylon strap with metal buckle.",role:"Holds the 1350 mAh pack rock-solid on the top plate — the sticky pad stops it sliding, the strap keeps it on through a hard flip or crash.",watch:"Stick the pad to clean, degreased carbon or it peels. Route the strap through the frame slots (not just over the top) and cinch it hard — a pack shifting mid-flip throws your CG and tune."},
+    tpu:{name:"3D-Aqua TPU mounts",sys:"Vista + antenna mounts",acquired:"3D-Aqua printed TPU mounts in Aqua — the Vista air-unit mount with nuts, plus the SMA antenna mount.",role:"Soft-mount the Vista in the rear bay and hold the antenna upright at the back. The flex isolates the air unit from vibration and lets the whip survive crashes instead of snapping.",watch:"TPU has give — don't overtighten the nuts or you'll crush the mount and lose the isolation. Angle the antenna mount so the whip clears the props and stands off the carbon and battery."},
+    power:{name:"XT60 harness + smoke stopper",sys:"Power harness",acquired:"XT60 connector on silicone leads running into the stack; first power-ups go through your JHEMCU XT30/XT60 smoke stopper.",role:"Carries the full 6S pack current into the stack — the highest-current joint on the quad.",watch:"Use thick silicone wire and a hot iron; a cold joint here is a fire risk. Always do the first power-up through the smoke stopper. Note: on this stack the leads solder to the ESC battery pads. Keep red/black correct and strain-relieve."}
+  };
+  const GROUP_ORDER=["Airframe","Propulsion","Power","Video","Control"];
+  const GROUP_PARTS={Airframe:["frame","batmount","tpu"],Propulsion:["motors","props"],Power:["battery","power"],Video:["camera","vista","vtxant"],Control:["fc","esc","rx"]};
+  const ICONS={
+    goggles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="7.5" width="19" height="9.5" rx="3.2"/><circle cx="8" cy="12.2" r="2.4"/><circle cx="16" cy="12.2" r="2.4"/><path d="M2.6 9.4 1.2 8.2 M21.4 9.4 22.8 8.2"/></svg>',
+    radio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="4" y="7.5" width="16" height="12.5" rx="2.2"/><circle cx="8.5" cy="13.5" r="1.9"/><circle cx="15.5" cy="13.5" r="1.9"/><path d="M7 4.5 7 7.5 M17 4.5 17 7.5"/></svg>',
+    smoke:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="9" width="9" height="6" rx="1.5"/><path d="M11.5 12 H16"/><circle cx="19" cy="12" r="3.2"/><path d="M19 8.8 V7.5"/></svg>'
+  };
+  const MISC=[
+    {icon:'goggles',name:'DJI FPV Goggles V2',sys:'Headset',acquired:"DJI FPV Goggles V2 — your headset, locked to DJI's first-gen digital protocol.",role:"Receive and display the Vista's HD feed; also where you set VTX channel/power and read the OSD.",watch:"Pair only with Vista / O3 / first-gen units — not O4 or Walksnail. Bind to the Vista, match antenna polarity, and keep both on compatible firmware."},
+    {icon:'radio',name:'FrSky Taranis Q X7',sys:'Radio · TX',acquired:"FrSky Taranis Q X7 (ACCST) with the R9M module fitted but External RF OFF — you fly on the internal 2.4 GHz ACCST D16.",role:"Your control transmitter. Sends stick/switch commands to the R-XSR and shows the S.Port telemetry coming back.",watch:"Match ACCST version (v1 vs v2/D16) to the R-XSR or it won't bind. Keep External RF OFF, set per-model failsafe, and calibrate sticks + throttle before the maiden."},
+    {icon:'smoke',name:'JHEMCU Smoke Stopper',sys:'Bench tool',acquired:"JHEMCU XT30/XT60 smoke stopper — wired inline between pack and quad on first power-ups.",role:"Current-limits the very first power-up so a wiring short or reversed joint blinks the LED instead of frying the Vista or stack.",watch:"Use it for every first power-up after soldering. If the LED stays solid/bright, you have a short — stop and find it. It's a bench tool; remove before flying."}
+  ];
+
+  let inited=false, sceneResize=null;
+  if(typeof window.__diagramActive==='undefined') window.__diagramActive=false;
+
+  window.initDiagram=function(){
+    if(inited){ if(sceneResize)sceneResize(); return; }
+    inited=true;
+    if(window.THREE){ build(); return; }
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.onload=build;
+    s.onerror=function(){ inited=false; document.getElementById('dg-host').innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;padding:20px;text-align:center">Couldn’t load the 3D viewer — check your connection and reopen this tab.</div>'; };
+    document.head.appendChild(s);
+  };
+
+  function build(){
+    const HL=0x3df5a0;
+    const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const host=document.getElementById('dg-host');
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(34,1,1,4000);
+    camera.position.set(0,64,485); camera.lookAt(0,-4,0);
+    const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    host.appendChild(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0x9fc4b4,0.55));
+    const k=new THREE.DirectionalLight(0xffffff,1.12); k.position.set(180,320,240); scene.add(k);
+    const fi=new THREE.DirectionalLight(0x6fa890,0.6); fi.position.set(-260,80,-120); scene.add(fi);
+    const ri=new THREE.DirectionalLight(0x3df5a0,0.4); ri.position.set(-60,-120,-300); scene.add(ri);
+    const tilt=new THREE.Group(); tilt.rotation.x=0.42;
+    const spin=new THREE.Group(); tilt.add(spin); scene.add(tilt);
+
+    function lipoTexture(){
+      const c=document.createElement('canvas'); c.width=256; c.height=128; const x=c.getContext('2d');
+      x.fillStyle='#1c1f24'; x.fillRect(0,0,256,128);
+      for(let i=0;i<128;i+=6){x.fillStyle='rgba(255,255,255,0.025)';x.fillRect(0,i,256,2);}
+      x.fillStyle='#b8311f'; x.fillRect(16,40,224,48);
+      x.fillStyle='#0e0f11'; x.fillRect(16,40,224,7);
+      x.fillStyle='#fff'; x.font='bold 26px monospace'; x.textBaseline='middle'; x.fillText('GNB',30,64);
+      x.font='bold 14px monospace'; x.fillStyle='#ffd9d0'; x.fillText('6S · 1350mAh · 100C',92,60);
+      x.font='11px monospace'; x.fillStyle='#ffd9d0'; x.fillText('22.2V  XT60',92,76);
+      const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+    }
+    const mat={
+      carbon:()=>new THREE.MeshStandardMaterial({color:0x171a20,roughness:0.55,metalness:0.35}),
+      carbon2:()=>new THREE.MeshStandardMaterial({color:0x20262e,roughness:0.5,metalness:0.4}),
+      motorBody:()=>new THREE.MeshStandardMaterial({color:0x23262c,roughness:0.4,metalness:0.65}),
+      motorBell:()=>new THREE.MeshStandardMaterial({color:0x3a3f47,roughness:0.35,metalness:0.75}),
+      accentRing:()=>new THREE.MeshStandardMaterial({color:0x2f7fd6,roughness:0.4,metalness:0.6,emissive:0x10233f,emissiveIntensity:0.3}),
+      alu:()=>new THREE.MeshStandardMaterial({color:0xb9c0c9,roughness:0.3,metalness:0.8}),
+      propY:()=>new THREE.MeshStandardMaterial({color:0xe6c534,roughness:0.5,metalness:0.1,transparent:true,opacity:0.93,side:THREE.DoubleSide}),
+      propB:()=>new THREE.MeshStandardMaterial({color:0x2f7fd6,roughness:0.5,metalness:0.1,transparent:true,opacity:0.93,side:THREE.DoubleSide}),
+      pcbGreen:()=>new THREE.MeshStandardMaterial({color:0x1f7a4d,roughness:0.55,metalness:0.2}),
+      pcbBlack:()=>new THREE.MeshStandardMaterial({color:0x101216,roughness:0.5,metalness:0.3}),
+      gold:()=>new THREE.MeshStandardMaterial({color:0xc9a14a,roughness:0.35,metalness:0.85}),
+      vistaBoard:()=>new THREE.MeshStandardMaterial({color:0x0e0f13,roughness:0.5,metalness:0.35}),
+      heatsink:()=>new THREE.MeshStandardMaterial({color:0x4a4f57,roughness:0.35,metalness:0.85}),
+      camBody:()=>new THREE.MeshStandardMaterial({color:0x14161b,roughness:0.5,metalness:0.3}),
+      lens:()=>new THREE.MeshStandardMaterial({color:0x2b6f86,roughness:0.15,metalness:0.5,emissive:0x10303a,emissiveIntensity:0.4}),
+      cap:()=>new THREE.MeshStandardMaterial({color:0x1b3a5c,roughness:0.4,metalness:0.5}),
+      lipo:()=>new THREE.MeshStandardMaterial({map:lipoTexture(),roughness:0.5,metalness:0.2}),
+      lipoEnd:()=>new THREE.MeshStandardMaterial({color:0x1a1d22,roughness:0.55,metalness:0.2}),
+      pad:()=>new THREE.MeshStandardMaterial({color:0x2f6fb0,roughness:0.85,metalness:0.0}),
+      strap:()=>new THREE.MeshStandardMaterial({color:0x0c0d10,roughness:0.9,metalness:0.0}),
+      tpuAqua:()=>new THREE.MeshStandardMaterial({color:0x16c9b4,roughness:0.55,metalness:0.05,transparent:true,opacity:0.85,emissive:0x06463f,emissiveIntensity:0.25}),
+      wireR:()=>new THREE.MeshStandardMaterial({color:0xc0352f,roughness:0.7,metalness:0.1}),
+      wireB:()=>new THREE.MeshStandardMaterial({color:0x141414,roughness:0.7,metalness:0.1}),
+      phase1:()=>new THREE.MeshStandardMaterial({color:0x12151a,roughness:0.7,metalness:0.15}),
+      phase2:()=>new THREE.MeshStandardMaterial({color:0x2a2f36,roughness:0.7,metalness:0.15}),
+      phase3:()=>new THREE.MeshStandardMaterial({color:0x3c3a33,roughness:0.7,metalness:0.15}),
+      xt60:()=>new THREE.MeshStandardMaterial({color:0xe7b53b,roughness:0.5,metalness:0.1}),
+      antMast:()=>new THREE.MeshStandardMaterial({color:0x101216,roughness:0.6,metalness:0.2}),
+      antTip:()=>new THREE.MeshStandardMaterial({color:0xeef2f6,roughness:0.4,metalness:0.05,emissive:0x223040,emissiveIntensity:0.2}),
+      rxBoard:()=>new THREE.MeshStandardMaterial({color:0x141821,roughness:0.5,metalness:0.3}),
+      rxAnt:()=>new THREE.MeshStandardMaterial({color:0x222831,roughness:0.6,metalness:0.2})
+    };
+    const registry={};
+    function pg(id){const g=new THREE.Group();g.userData.partId=id;registry[id]={group:g,meshes:[]};return g;}
+    function add(p,geo,m,pos,rot){const me=new THREE.Mesh(geo,m);if(pos)me.position.set(pos[0],pos[1],pos[2]);if(rot)me.rotation.set(rot[0],rot[1],rot[2]);p.add(me);return me;}
+    const _up=new THREE.Vector3(0,1,0);
+    function tube(p,a,b,r,m){const va=new THREE.Vector3(a[0],a[1],a[2]),vb=new THREE.Vector3(b[0],b[1],b[2]);const d=new THREE.Vector3().subVectors(vb,va);const me=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),m);me.position.copy(va).addScaledVector(d,0.5);me.quaternion.setFromUnitVectors(_up,d.clone().normalize());p.add(me);return me;}
+    const ARM_Y=4,MX=80,MZ=84,BODY_Z=112;
+    const corners=[[MX,ARM_Y,MZ],[-MX,ARM_Y,MZ],[MX,ARM_Y,-MZ],[-MX,ARM_Y,-MZ]];
+
+    (function(){const g=pg('frame');
+      add(g,new THREE.BoxGeometry(56,6,BODY_Z),mat.carbon(),[0,ARM_Y,0]);
+      corners.forEach(c=>{const len=Math.hypot(c[0],c[2]),ang=Math.atan2(c[0],c[2]);
+        add(g,new THREE.BoxGeometry(12,6,len-6),mat.carbon(),[c[0]/2,ARM_Y,c[2]/2],[0,ang,0]);
+        add(g,new THREE.CylinderGeometry(15,15,5,28),mat.carbon2(),[c[0],ARM_Y,c[2]]);});
+      add(g,new THREE.BoxGeometry(50,4,100),mat.carbon(),[0,ARM_Y+26,0]);
+      [[22,34],[-22,34],[22,-34],[-22,-34]].forEach(p=>add(g,new THREE.CylinderGeometry(2.4,2.4,26,12),mat.alu(),[p[0],ARM_Y+13,p[1]]));
+      add(g,new THREE.BoxGeometry(3,22,30),mat.carbon(),[19,ARM_Y+14,48]);
+      add(g,new THREE.BoxGeometry(3,22,30),mat.carbon(),[-19,ARM_Y+14,48]);
+      spin.add(g);})();
+
+    (function(){const g=pg('motors');const pm=[mat.phase1,mat.phase2,mat.phase3];
+      corners.forEach(c=>{
+        add(g,new THREE.CylinderGeometry(13,13,11,30),mat.motorBody(),[c[0],ARM_Y+9,c[2]]);
+        add(g,new THREE.CylinderGeometry(14,13.5,6,30),mat.motorBell(),[c[0],ARM_Y+16,c[2]]);
+        add(g,new THREE.CylinderGeometry(14.3,14.3,1.4,30),mat.accentRing(),[c[0],ARM_Y+14,c[2]]);
+        add(g,new THREE.CylinderGeometry(1.6,1.6,8,12),mat.alu(),[c[0],ARM_Y+21,c[2]]);
+        const sx=Math.sign(c[0]),sz=Math.sign(c[2]);
+        const st=[c[0]*0.86,ARM_Y+7,c[2]*0.86],en=[sx*17,ARM_Y+8.5,sz*17];
+        const dx=en[0]-st[0],dz=en[2]-st[2],pl=Math.hypot(dx,dz)||1,px=-dz/pl,pz=dx/pl;
+        for(let kk=-1;kk<=1;kk++){tube(g,[st[0]+px*kk*2.4,st[1],st[2]+pz*kk*2.4],[en[0]+px*kk*1.6,en[1],en[2]+pz*kk*1.6],0.85,pm[kk+1]());}
+      });
+      spin.add(g);})();
+
+    function makeBlade(m){const bl=new THREE.Group();const N=5,R=60,seg=R/N,rp=0.58,tp=0.14;
+      for(let i=0;i<N;i++){const t=i/(N-1);const pitch=rp+(tp-rp)*t;const w=15+(7-15)*t;
+        const pc=add(bl,new THREE.BoxGeometry(seg*1.04,1.4,w),m,[seg*(i+0.6),Math.sin(t*1.5)*1.6,0]);pc.rotation.x=pitch;}
+      return bl;}
+    (function(){const g=pg('props');
+      corners.forEach((c,i)=>{const pm=c[2]>0?mat.propY():mat.propB();
+        const hub=new THREE.Group();hub.position.set(c[0],ARM_Y+23,c[2]);hub.rotation.y=i*0.7;
+        add(hub,new THREE.CylinderGeometry(5,5,4,16),mat.pcbBlack(),[0,0,0]);
+        for(let b=0;b<3;b++){const x=makeBlade(pm);x.rotation.y=b*(Math.PI*2/3);hub.add(x);}
+        g.add(hub);});
+      spin.add(g);})();
+
+    (function(){const g=pg('esc');
+      add(g,new THREE.BoxGeometry(38,4,38),mat.pcbBlack(),[0,ARM_Y+8,0]);
+      add(g,new THREE.CylinderGeometry(4.5,4.5,11,18),mat.cap(),[14,ARM_Y+15,14]);
+      add(g,new THREE.BoxGeometry(10,7,6),mat.pcbBlack(),[-13,ARM_Y+13,-13]);
+      spin.add(g);})();
+    (function(){const g=pg('fc');
+      add(g,new THREE.BoxGeometry(36,3.5,36),mat.pcbGreen(),[0,ARM_Y+16,0]);
+      add(g,new THREE.BoxGeometry(10,2,10),mat.pcbBlack(),[0,ARM_Y+18.5,0]);
+      [[15,15],[-15,15],[15,-15],[-15,-15]].forEach(p=>add(g,new THREE.CylinderGeometry(1.4,1.4,4,8),mat.gold(),[p[0],ARM_Y+16,p[1]]));
+      spin.add(g);})();
+    (function(){const g=pg('camera');const cam=new THREE.Group();cam.position.set(0,ARM_Y+15,50);cam.rotation.x=-0.52;
+      add(cam,new THREE.BoxGeometry(19,19,16),mat.camBody(),[0,0,0]);
+      add(cam,new THREE.CylinderGeometry(7,7,8,24),mat.camBody(),[0,3,9],[Math.PI/2,0,0]);
+      add(cam,new THREE.CylinderGeometry(5.5,5.5,3,24),mat.lens(),[0,3,13],[Math.PI/2,0,0]);
+      g.add(cam);spin.add(g);})();
+    const VZ=-42;
+    (function(){const g=pg('tpu');
+      add(g,new THREE.BoxGeometry(8,4,26),mat.tpuAqua(),[0,ARM_Y+8,VZ]);
+      [[12,12],[-12,12],[12,-12],[-12,-12]].forEach(p=>{
+        add(g,new THREE.CylinderGeometry(4,4.6,11,16),mat.tpuAqua(),[p[0],ARM_Y+10.5,VZ+p[1]]);
+        add(g,new THREE.CylinderGeometry(2.2,2.2,2,6),mat.alu(),[p[0],ARM_Y+16,VZ+p[1]]);});
+      add(g,new THREE.BoxGeometry(5,4,26),mat.tpuAqua(),[12,ARM_Y+8,VZ]);
+      add(g,new THREE.BoxGeometry(5,4,26),mat.tpuAqua(),[-12,ARM_Y+8,VZ]);
+      add(g,new THREE.BoxGeometry(14,16,10),mat.tpuAqua(),[0,ARM_Y+34,-60]);
+      add(g,new THREE.CylinderGeometry(2.6,2.6,20,12),mat.tpuAqua(),[0,ARM_Y+42,-62],[0.32,0,0]);
+      spin.add(g);})();
+    (function(){const g=pg('vista');
+      add(g,new THREE.BoxGeometry(31,4,31),mat.vistaBoard(),[0,ARM_Y+18,VZ]);
+      add(g,new THREE.BoxGeometry(26,11,26),mat.heatsink(),[0,ARM_Y+26,VZ]);
+      for(let i=-1;i<=1;i++)add(g,new THREE.BoxGeometry(2,13,22),mat.vistaBoard(),[i*8,ARM_Y+27,VZ]);
+      add(g,new THREE.CylinderGeometry(1.2,1.2,14,10),mat.antMast(),[0,ARM_Y+22,VZ-12],[0.5,0,0]);
+      spin.add(g);})();
+    (function(){const g=pg('vtxant');const ant=new THREE.Group();ant.position.set(0,ARM_Y+34,-62);ant.rotation.x=0.32;
+      add(ant,new THREE.CylinderGeometry(1.5,1.5,42,12),mat.antMast(),[0,21,0]);
+      add(ant,new THREE.CylinderGeometry(2.2,2.2,14,14),mat.antTip(),[0,46,0]);
+      g.add(ant);spin.add(g);})();
+    (function(){const g=pg('rx');
+      add(g,new THREE.BoxGeometry(13,3,17),mat.rxBoard(),[26,ARM_Y+10,16]);
+      add(g,new THREE.CylinderGeometry(0.9,0.9,40,8),mat.rxAnt(),[34,ARM_Y+11,32],[0.6,0.6,0]);
+      add(g,new THREE.CylinderGeometry(0.9,0.9,40,8),mat.rxAnt(),[30,ARM_Y+11,2],[0.6,-0.6,0]);
+      add(g,new THREE.CylinderGeometry(1.1,1.1,9,8),mat.antTip(),[44,ARM_Y+20,46],[0.6,0.6,0]);
+      add(g,new THREE.CylinderGeometry(1.1,1.1,9,8),mat.antTip(),[40,ARM_Y+20,-12],[0.6,-0.6,0]);
+      spin.add(g);})();
+    (function(){const g=pg('battery');const bat=new THREE.Group();bat.position.set(0,ARM_Y+45,-2);
+      const wrap=mat.lipo(),e=mat.lipoEnd();
+      const mats=[e,e,mat.lipoEnd(),mat.lipoEnd(),wrap,mat.lipo()];
+      bat.add(new THREE.Mesh(new THREE.BoxGeometry(40,26,90),mats));
+      add(bat,new THREE.BoxGeometry(10,2,6),mat.wireB(),[8,6,-46]);
+      g.add(bat);spin.add(g);})();
+    (function(){const g=pg('batmount');
+      add(g,new THREE.BoxGeometry(42,3,86),mat.pad(),[0,ARM_Y+29.5,-2]);
+      add(g,new THREE.BoxGeometry(47,33,7),mat.strap(),[0,ARM_Y+45,-32]);
+      add(g,new THREE.BoxGeometry(47,33,7),mat.strap(),[0,ARM_Y+45,28]);
+      add(g,new THREE.BoxGeometry(8,5,5),mat.alu(),[20,ARM_Y+45,28]);
+      spin.add(g);})();
+    (function(){const g=pg('power');
+      add(g,new THREE.BoxGeometry(16,9,9),mat.xt60(),[0,ARM_Y+12,30]);
+      tube(g,[4,ARM_Y+12,30],[6,ARM_Y+9,12],1.7,mat.wireR());
+      tube(g,[-4,ARM_Y+12,30],[-6,ARM_Y+9,12],1.7,mat.wireB());
+      tube(g,[5,ARM_Y+40,30],[5,ARM_Y+16,31],1.7,mat.wireR());
+      tube(g,[-5,ARM_Y+40,30],[-5,ARM_Y+16,31],1.7,mat.wireB());
+      spin.add(g);})();
+
+    Object.values(registry).forEach(en=>{en.group.traverse(o=>{if(o.isMesh){
+      const mm=Array.isArray(o.material)?o.material:[o.material];
+      mm.forEach(material=>en.meshes.push({mat:material,baseE:material.emissive?material.emissive.getHex():null,baseI:material.emissiveIntensity!==undefined?material.emissiveIntensity:1}));}});});
+    function hl(id,on){const e=registry[id];if(!e)return;e.meshes.forEach(r=>{if(r.baseE===null)return;if(on){r.mat.emissive.setHex(HL);r.mat.emissiveIntensity=0.55;}else{r.mat.emissive.setHex(r.baseE);r.mat.emissiveIntensity=r.baseI;}});}
+
+    const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();
+    let hovered=null,pinned=null,lastHL=null;
+    const panel=document.getElementById('dgPanel'),pName=document.getElementById('dgName'),pSys=document.getElementById('dgSys'),
+          pBody=document.getElementById('dgBody'),hint=document.getElementById('dgHint'),cur=document.getElementById('dgCursor');
+    const lbl=panel.querySelector('.dg-lbl');
+    function eff(){return pinned||hovered;}
+    function findId(o){while(o){if(o.userData&&o.userData.partId)return o.userData.partId;o=o.parent;}return null;}
+    function renderP(){
+      const id=eff();
+      if(lastHL&&lastHL!==id)hl(lastHL,false);
+      if(id)hl(id,true); lastHL=id;
+      if(!id){panel.classList.remove('dg-on');lbl.textContent='Idle · rotating';
+        pName.textContent='Select a component';pSys.innerHTML='&nbsp;';
+        pBody.innerHTML='<p class="dg-empty"><strong>Hover or tap any part</strong> of the quad — or a chip below — to pause the spin and read what it is, what it does, and the assembly watch-outs for your build.</p>';
+        document.querySelectorAll('.dg-chip').forEach(c=>c.classList.remove('on'));return;}
+      const p=PARTS[id];panel.classList.add('dg-on');lbl.textContent=pinned?'Pinned · paused':'Live · paused';
+      pName.textContent=p.name;pSys.textContent=p.sys;
+      pBody.innerHTML='<div class="dg-field"><p class="dgl">Acquired</p><p>'+p.acquired+'</p></div>'+
+        '<div class="dg-field role"><p class="dgl">Role in the build</p><p>'+p.role+'</p></div>'+
+        '<div class="dg-field warn"><p class="dgl">Connectivity &amp; watch-outs</p><p>'+p.watch+'</p></div>';
+      document.querySelectorAll('.dg-chip').forEach(c=>c.classList.toggle('on',c.dataset.part===id));
+    }
+    function pick(e){const r=renderer.domElement.getBoundingClientRect();
+      ptr.x=((e.clientX-r.left)/r.width)*2-1;ptr.y=-((e.clientY-r.top)/r.height)*2+1;
+      ray.setFromCamera(ptr,camera);const h=ray.intersectObjects(spin.children,true);return h.length?findId(h[0].object):null;}
+    renderer.domElement.addEventListener('pointermove',e=>{const id=pick(e);if(id!==hovered){hovered=id;renderP();}
+      if(id){cur.textContent=PARTS[id].name;const r=renderer.domElement.getBoundingClientRect();
+        cur.style.left=(e.clientX-r.left)+'px';cur.style.top=(e.clientY-r.top)+'px';cur.style.opacity=1;
+        renderer.domElement.style.cursor='pointer';hint.style.opacity=0;}
+      else{cur.style.opacity=0;renderer.domElement.style.cursor='default';if(!pinned)hint.style.opacity=1;}});
+    renderer.domElement.addEventListener('pointerleave',()=>{hovered=null;cur.style.opacity=0;if(!pinned)hint.style.opacity=1;renderP();});
+    renderer.domElement.addEventListener('pointerdown',e=>{const id=pick(e);pinned=(id&&id===pinned)?null:id;hint.style.opacity=pinned?0:1;renderP();});
+
+    const man=document.getElementById('dgManifest');
+    GROUP_ORDER.forEach(gn=>{const w=document.createElement('div');w.className='dg-grp';w.innerHTML='<p class="dg-glab">'+gn+'</p>';
+      const ch=document.createElement('div');ch.className='dg-chips';
+      (GROUP_PARTS[gn]||[]).forEach(id=>{const b=document.createElement('button');b.className='dg-chip';b.dataset.part=id;b.textContent=PARTS[id].name;
+        b.addEventListener('mouseenter',()=>{hovered=id;renderP();});b.addEventListener('mouseleave',()=>{hovered=null;renderP();});
+        b.addEventListener('click',()=>{pinned=(pinned===id)?null:id;hint.style.opacity=pinned?0:1;renderP();});ch.appendChild(b);});
+      w.appendChild(ch);man.appendChild(w);});
+
+    const sg=document.getElementById('dgSgList');
+    MISC.forEach(m=>{const card=document.createElement('div');card.className='dg-sg';
+      card.innerHTML='<div class="dg-sgtop"><div class="dg-sgic">'+ICONS[m.icon]+'</div><div><p class="dg-sgname">'+m.name+'</p><p class="dg-sgsys">'+m.sys+'</p></div></div>'+
+        '<div class="dg-sgdet"><div class="dg-fld"><p class="l">Acquired</p><p>'+m.acquired+'</p></div>'+
+        '<div class="dg-fld role"><p class="l">Role</p><p>'+m.role+'</p></div>'+
+        '<div class="dg-fld warn"><p class="l">Watch-outs</p><p>'+m.watch+'</p></div></div>';
+      card.addEventListener('click',()=>{const open=card.classList.contains('open');
+        document.querySelectorAll('.dg-sg').forEach(c=>c.classList.remove('open'));if(!open)card.classList.add('open');});
+      sg.appendChild(card);});
+
+    function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+    sceneResize=resize; window.addEventListener('resize',resize); resize();
+    const SPEED=reduceMotion?0:0.0062;
+    function loop(){requestAnimationFrame(loop);if(!window.__diagramActive)return;if(!eff())spin.rotation.y-=SPEED;renderer.render(scene,camera);}
+    loop();
+    if(reduceMotion){spin.rotation.y=-0.6;const p=hint.querySelector('.dg-pulse');if(p)p.style.display='none';}
+  }
+})();
 </script>
 </body>
 </html>
